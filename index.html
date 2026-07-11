@@ -44,27 +44,44 @@
   @keyframes spin{to{transform:rotate(360deg);}}
   #appLoading span{color:var(--muted); font-size:13.5px; font-weight:600;}
 
-  .topbar-wrap{position:sticky; top:0; z-index:50; box-shadow:0 2px 10px rgba(0,0,0,.18);}
-  .topbar{display:flex; align-items:center; justify-content:space-between; padding:11px 24px; background:var(--primary); gap:16px;}
   .brand{display:flex; align-items:center; gap:11px; flex:none;}
-  .brand-logo-chip{height:34px; width:auto; min-width:34px; display:flex; align-items:center; justify-content:flex-start; flex:none;}
-  .brand-logo-chip img{max-width:140px; max-height:100%; width:auto; height:100%; object-fit:contain;}
-  .brand-text b{color:#fff; font-size:16.5px; display:block; line-height:1.15;}
-  .brand-text span{font-size:11px; color:#B9C9DC; letter-spacing:.03em;}
+  .app-shell{display:flex; min-height:100%; width:100%;}
+  .app-content-col{flex:1; display:flex; flex-direction:column; min-height:100vh; min-width:0;}
 
-  .subnav-bar{background:var(--primary-dark); padding:0 24px; overflow-x:auto;}
-  .topnav{display:flex; gap:2px;}
-  .topnav button{border:none; background:transparent; color:#AEC0D8; padding:12px 16px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:7px; transition:.15s; border-bottom:3px solid transparent; white-space:nowrap;}
-  .topnav button.active{color:#fff; border-bottom-color:var(--accent);}
-  .topnav button:not(.active):hover{color:#fff;}
+  .sidebar{width:248px; flex:none; background:var(--card); border-right:1px solid var(--border); display:none; flex-direction:column; position:sticky; top:0; height:100vh; z-index:60;}
+  .sidebar.visible{display:flex;}
+  .sidebar-brand{display:flex; align-items:center; gap:11px; padding:20px 18px; border-bottom:1px solid var(--border);}
+  .brand-logo-chip{height:32px; width:auto; min-width:32px; display:flex; align-items:center; justify-content:flex-start; flex:none;}
+  .brand-logo-chip img{max-width:150px; max-height:100%; width:auto; height:100%; object-fit:contain;}
+  .brand-text b{color:var(--primary); font-size:15px; display:block; line-height:1.2;}
+  .brand-text span{font-size:10.5px; color:var(--muted); letter-spacing:.02em;}
 
-  .top-right{display:flex; align-items:center; gap:10px;}
-  .user-chip{display:flex; align-items:center; gap:9px; background:rgba(255,255,255,.08); padding:5px 12px 5px 5px; border-radius:999px; color:#fff; font-size:13px; font-weight:600;}
-  .avatar-mini{width:26px; height:26px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; color:#fff; overflow:hidden; flex:none;}
+  .sidebar-nav{flex:1; overflow-y:auto; padding:14px 12px;}
+  .sidebar-nav button{width:100%; display:flex; align-items:center; gap:11px; padding:11px 14px; border-radius:10px; border:none; border-left:4px solid transparent; background:transparent; color:var(--muted); font-size:13.5px; font-weight:600; margin-bottom:3px; text-align:left; transition:.15s;}
+  .sidebar-nav button:hover:not(.active){background:var(--bg); color:var(--text);}
+  .sidebar-nav button.active{background:var(--primary); color:#fff; border-left-color:var(--accent); padding-left:10px;}
+
+  .sidebar-footer{border-top:1px solid var(--border); padding:14px 16px; display:flex; align-items:center; gap:10px;}
+  .user-chip{display:flex; align-items:center; gap:9px; flex:1; min-width:0; color:var(--text); font-size:13px; font-weight:700;}
+  .avatar-mini{width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; overflow:hidden; flex:none;}
   .avatar-mini img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
-  .user-chip .who small{display:block; color:#AFC2D9; font-weight:500; font-size:10.5px;}
-  .logout-btn{background:rgba(255,255,255,.08); border:none; color:#C7D6E8; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
-  .logout-btn:hover{background:rgba(255,255,255,.16); color:#fff;}
+  .user-chip .who{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .user-chip .who small{display:block; color:var(--muted); font-weight:500; font-size:10.5px;}
+  .logout-btn{background:var(--bg); border:1px solid var(--border); color:var(--muted); width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;}
+  .logout-btn:hover{background:var(--red-tint); color:var(--red); border-color:var(--red-tint);}
+
+  .mobile-topbar{display:none; align-items:center; justify-content:space-between; background:var(--primary); padding:10px 16px; position:sticky; top:0; z-index:55;}
+  .mobile-topbar .brand-logo-chip{height:26px;}
+  .mobile-topbar .brand-text b{color:#fff; font-size:14px;}
+  .hamburger-btn{background:rgba(255,255,255,.12); border:none; color:#fff; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .sidebar-overlay{display:none; position:fixed; inset:0; background:rgba(7,20,35,.5); z-index:59;}
+  .sidebar-overlay.visible{display:block;}
+
+  @media(max-width:900px){
+    .mobile-topbar.visible{display:flex;}
+    .sidebar.visible{position:fixed; left:0; top:0; transform:translateX(-100%); transition:transform .22s ease; box-shadow:var(--shadow-lg);}
+    .sidebar.visible.open{transform:translateX(0);}
+  }
 
   main{max-width:1200px; margin:0 auto; padding:26px 24px 60px; width:100%; flex:1 0 auto;}
   .view{display:none;}
@@ -277,11 +294,6 @@
   .app-footer{border-top:1px solid var(--border); background:var(--card); flex-shrink:0;}
   .app-footer p{max-width:1200px; margin:0 auto; padding:16px 24px; font-size:11.5px; color:var(--muted-2); text-align:center; line-height:1.5;}
   @media(max-width:760px){
-    .topbar{padding:10px 16px;}
-    .subnav-bar{padding:0 16px;}
-    .brand-text span{display:none;}
-    .topnav button{padding:10px 12px; font-size:12px;}
-    .user-chip .who small{display:none;}
     main{padding:18px 14px 60px;}
   }
   .settings-form label.field-label{margin-top:14px;}
@@ -292,21 +304,31 @@
 <div id="appLoading"><div class="spinner"></div><span>Loading Call Simulator…</span></div>
 <div id="toast-container"></div>
 
-<div id="appRoot" style="display:none; min-height:100%; flex-direction:column;">
+<div id="appRoot" style="display:none;">
 
-<header class="topbar-wrap">
-  <div class="topbar">
-    <div class="brand">
+<div class="mobile-topbar" id="mobileTopbar">
+  <div class="brand" style="gap:8px;">
+    <div class="brand-logo-chip"><img id="mobileBrandLogo" src="" alt="Company logo"></div>
+    <div class="brand-text"><b id="mobileBrandAppName">Call Simulator</b></div>
+  </div>
+  <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileSidebar()"></button>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
       <div class="brand-logo-chip"><img id="brandLogo" src="" alt="Company logo"></div>
       <div class="brand-text"><b id="brandAppName">Call Simulator</b><span id="brandSubtitle">ARETEX · BSS POS Operations</span></div>
     </div>
-    <div class="top-right" id="topRight" style="display:none;">
+    <nav class="sidebar-nav" id="topnav"></nav>
+    <div class="sidebar-footer">
       <div class="user-chip" id="userChip"></div>
       <button class="logout-btn" id="logoutBtn" onclick="requestLogout()" title="Log out"></button>
     </div>
-  </div>
-  <div class="subnav-bar" id="subnavBar" style="display:none;"><nav class="topnav" id="topnav"></nav></div>
-</header>
+  </aside>
+
+  <div class="app-content-col">
 
 <main>
 
@@ -501,6 +523,9 @@
   <p>BSS POS Call Simulator is an internal ARETEX training tool. It does not place real calls. All scenarios and recordings are for practice and coaching purposes only.</p>
 </footer>
 
+  </div>
+</div>
+
 </div>
 
 <div id="modal-root"></div>
@@ -510,6 +535,7 @@
    ICONS
    ============================================================ */
 const ICONS = {
+  menu: '<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>',
   phone: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>',
   phoneOut: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M15 4h5v5"/><path d="M20 4l-6 6"/>',
   phoneIn: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M20 4l-6 6"/><path d="M14.5 4H20v5.5"/>',
@@ -550,7 +576,7 @@ function icon(name, size){ size = size || 16; return '<svg width="'+size+'" heig
  *
  * To enable the external-hosting path, paste your deployed /exec URL below.
  */
-const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbwOAdcNHEoR-FLXk1Gky3YYXx9nJIVZSyuxoEOYTrzCVJcuqD2jjsJ5BUb1UsyC6Zqe/exec';
+const DEPLOYED_WEBAPP_URL = 'PASTE_YOUR_DEPLOYED_WEBAPP_EXEC_URL_HERE';
 
 function usingAppsScriptBridge_(){
   return (typeof google !== 'undefined' && !!google.script && !!google.script.run);
@@ -636,10 +662,22 @@ function applyBranding(s){
   document.getElementById('brandAppName').textContent = s.APP_NAME || 'Call Simulator';
   document.getElementById('brandSubtitle').textContent = (s.COMPANY_NAME || 'ARETEX') + ' · ' + (s.TEAM_NAME || 'BSS POS Operations');
   document.getElementById('brandLogo').src = s.LOGO_URL || '';
+  document.getElementById('mobileBrandAppName').textContent = s.APP_NAME || 'Call Simulator';
+  document.getElementById('mobileBrandLogo').src = s.LOGO_URL || '';
+}
+
+function toggleMobileSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('visible');
+}
+function closeMobileSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
 }
 
 function renderStaticLabels(){
   document.getElementById('logoutBtn').innerHTML = icon('logout',15);
+  document.getElementById('hamburgerBtn').innerHTML = icon('menu',18);
   document.getElementById('backToScenariosBtn').innerHTML = icon('arrowLeft',15) + ' Back to scenarios';
   document.getElementById('dialBtn').innerHTML = icon('phoneOut',15) + ' Start Call';
   document.getElementById('muteBtn').innerHTML = icon('mic',17) + '<small>Mute</small>';
@@ -729,7 +767,8 @@ async function afterLogin(){
   state.submissions = submissions;
   renderTopnav();
   renderUserChip();
-  document.getElementById('topRight').style.display = 'flex';
+  document.getElementById('sidebar').classList.add('visible');
+  document.getElementById('mobileTopbar').classList.add('visible');
   showView(isApproverOrAdmin(currentUser) ? 'admin' : 'trainee-home');
   toast('Welcome back, ' + currentUser.Name + '.', 'success');
 }
@@ -753,9 +792,10 @@ function confirmLogout(){
 }
 function logout(){
   currentUser = null;
-  document.getElementById('topRight').style.display = 'none';
+  document.getElementById('sidebar').classList.remove('visible','open');
+  document.getElementById('mobileTopbar').classList.remove('visible');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
   document.getElementById('topnav').innerHTML = '';
-  document.getElementById('subnavBar').style.display = 'none';
   showView('login');
 }
 
@@ -770,7 +810,6 @@ function renderTopnav(){
   nav.innerHTML = isApproverOrAdmin(currentUser)
     ? dashboardBtn + practiceBtn + progressBtn
     : practiceBtn + progressBtn;
-  document.getElementById('subnavBar').style.display = 'block';
 }
 
 function renderUserChip(){
@@ -787,6 +826,7 @@ function showView(name){
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('#topnav button').forEach(function(b){ b.classList.toggle('active', b.dataset.v===name); });
+  closeMobileSidebar();
 
   if(name==='trainee-home') renderScenarios();
   if(name==='trainee-progress') renderTraineeProgress();
