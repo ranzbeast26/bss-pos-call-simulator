@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<title>Call Simulator · ARETEX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#073763;
+    --primary-dark:#052744;
+    --primary-tint:#E9EFF5;
+    --accent:#FF9900;
+    --accent-dark:#DB8300;
+    --accent-tint:#FFF2E0;
+    --bg:#F3F5F8;
+    --card:#FFFFFF;
+    --text:#16232F;
+    --muted:#647184;
+    --muted-2:#9AA6B8;
+    --green:#1B8A5A;
+    --green-tint:#E6F4EE;
+    --amber:#B7791F;
+    --amber-tint:#FBF1DF;
+    --red:#B3311F;
+    --red-tint:#FBEAE7;
+    --border:#E2E7EE;
+    --radius:14px;
+    --radius-sm:9px;
+    --shadow:0 4px 14px rgba(7,55,99,.07), 0 1px 2px rgba(7,55,99,.05);
+    --shadow-lg:0 18px 44px rgba(7,55,99,.16), 0 3px 10px rgba(7,55,99,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{margin:0; font-weight:700; letter-spacing:-0.01em;}
+  p{margin:0;}
+  button{font-family:inherit; cursor:pointer;}
+  svg{display:block;}
+
+  #appLoading{position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:1000;}
+  .spinner{width:34px; height:34px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--primary); animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #appLoading span{color:var(--muted); font-size:13.5px; font-weight:600;}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:10px 24px; background:var(--primary); position:sticky; top:0; z-index:50; box-shadow:0 2px 10px rgba(0,0,0,.18); gap:16px; flex-wrap:wrap;}
+  .topbar-left{display:flex; align-items:center; gap:22px; min-width:0;}
+  .brand{display:flex; align-items:center; gap:11px; flex:none;}
+  .brand-divider{width:1px; height:26px; background:rgba(255,255,255,.16); flex:none;}
+  .brand-logo-chip{height:34px; width:auto; min-width:34px; display:flex; align-items:center; justify-content:flex-start; flex:none;}
+  .brand-logo-chip img{max-width:140px; max-height:100%; width:auto; height:100%; object-fit:contain;}
+  .brand-text b{color:#fff; font-size:16.5px; display:block; line-height:1.15;}
+  .brand-text span{font-size:11px; color:#B9C9DC; letter-spacing:.03em;}
+
+  .topnav{display:flex; gap:3px; background:rgba(255,255,255,.08); padding:4px; border-radius:10px;}
+  .topnav button{border:none; background:transparent; color:#C7D6E8; padding:8px 15px; border-radius:7px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:7px; transition:.15s;}
+  .topnav button.active{background:#fff; color:var(--primary);}
+  .topnav button:not(.active):hover{background:rgba(255,255,255,.12); color:#fff;}
+
+  .top-right{display:flex; align-items:center; gap:10px;}
+  .user-chip{display:flex; align-items:center; gap:9px; background:rgba(255,255,255,.08); padding:5px 12px 5px 5px; border-radius:999px; color:#fff; font-size:13px; font-weight:600;}
+  .avatar-mini{width:26px; height:26px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; color:#fff; overflow:hidden; flex:none;}
+  .avatar-mini img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
+  .user-chip .who small{display:block; color:#AFC2D9; font-weight:500; font-size:10.5px;}
+  .logout-btn{background:rgba(255,255,255,.08); border:none; color:#C7D6E8; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .logout-btn:hover{background:rgba(255,255,255,.16); color:#fff;}
+
+  main{max-width:1200px; margin:0 auto; padding:26px 24px 80px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadeUp .3s ease;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+  .page-head{margin-bottom:22px;}
+  .page-head h1{font-size:23px; color:var(--primary);}
+  .page-head p{color:var(--muted); margin-top:4px; font-size:14px;}
+  .eyebrow{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--primary); background:var(--primary-tint); padding:4px 10px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;}
+
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--border);}
+  .pad{padding:22px;}
+  .grid{display:grid; gap:16px;}
+  .grid-2{grid-template-columns:1fr 1fr;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  @media(max-width:960px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+  .btn{border:none; border-radius:9px; padding:10px 16px; font-weight:700; font-size:13.5px; display:inline-flex; align-items:center; gap:7px; transition:.15s;}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 3px 10px rgba(255,153,0,.3);}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-navy{background:var(--primary); color:#fff;}
+  .btn-navy:hover{background:var(--primary-dark);}
+  .btn-ghost{background:var(--bg); color:var(--text); border:1px solid var(--border);}
+  .btn-ghost:hover{background:#e8ecf1;}
+  .btn-outline{background:transparent; border:1.5px solid var(--border); color:var(--text);}
+  .btn-outline:hover{border-color:var(--primary); color:var(--primary);}
+  .btn-danger{background:var(--red); color:#fff;}
+  .btn-danger:hover{background:#8f2717;}
+  .btn-green{background:var(--green); color:#fff;}
+  .btn-green:hover{background:#166f48;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn-sm{padding:6px 11px; font-size:12px; border-radius:7px;}
+  .btn-block{width:100%; justify-content:center;}
+  .icon-btn{width:50px; height:50px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; transition:.15s; flex-direction:column; gap:2px;}
+
+  .badge{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:6px; letter-spacing:.02em;}
+  .badge-beginner{background:var(--green-tint); color:var(--green);}
+  .badge-intermediate{background:var(--amber-tint); color:var(--amber);}
+  .badge-advanced{background:var(--red-tint); color:var(--red);}
+  .badge-outbound{background:var(--primary-tint); color:var(--primary);}
+  .badge-inbound{background:#F1E9FE; color:#6A3FC2;}
+  .badge-category{background:var(--bg); color:var(--muted); border:1px solid var(--border);}
+  .badge-pending{background:var(--amber-tint); color:var(--amber);}
+  .badge-approved{background:var(--green-tint); color:var(--green);}
+  .badge-retry{background:var(--red-tint); color:var(--red);}
+  .badge-role-admin{background:var(--primary-tint); color:var(--primary);}
+  .badge-role-approver{background:var(--accent-tint); color:var(--accent-dark);}
+  .badge-role-agent{background:var(--bg); color:var(--muted);}
+  .badge-mode-easy{background:var(--green-tint); color:var(--green);}
+  .badge-mode-medium{background:var(--amber-tint); color:var(--amber);}
+  .badge-mode-hard{background:var(--red-tint); color:var(--red);}
+  .badge-mode-impromptu{background:#F1E9FE; color:#6A3FC2;}
+  .badge-hidden{background:var(--bg); color:var(--muted); border:1px solid var(--border);}
+  .transcript-block{background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:12.5px; line-height:1.6; color:var(--text); white-space:pre-wrap; max-height:220px; overflow-y:auto; margin-top:8px;}
+
+  input[type=text], input[type=tel], input[type=email], input[type=password], textarea, select{
+    width:100%; border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; font-family:inherit; font-size:13.5px; background:#fff; color:var(--text);
+  }
+  input:focus, textarea:focus, select:focus{outline:none; border-color:var(--primary);}
+  label.field-label{font-size:11.5px; font-weight:700; color:var(--muted); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:.03em;}
+
+  #view-login.active{display:flex; align-items:center; justify-content:center; min-height:72vh;}
+  .login-card{max-width:404px; width:100%; margin:0; text-align:center; position:relative; overflow:hidden; padding-top:36px !important;}
+  .login-card::before{content:''; position:absolute; top:0; left:0; right:0; height:5px; background:linear-gradient(90deg, var(--primary), var(--accent));}
+  .login-card h2{font-size:21px; margin-bottom:6px; color:var(--primary); letter-spacing:-0.01em;}
+  .login-card p{color:var(--muted); font-size:13px; margin-bottom:22px; line-height:1.6;}
+  .login-card label.field-label{text-align:left;}
+  .login-error{background:var(--red-tint); color:var(--red); font-size:12.5px; font-weight:600; padding:9px 12px; border-radius:8px; margin-bottom:14px; display:none; text-align:left;}
+
+  .section-title{display:flex; align-items:center; gap:10px; margin:26px 0 14px;}
+  .section-title h3{font-size:13.5px; color:var(--primary); text-transform:uppercase; letter-spacing:.04em;}
+  .section-title .line{flex:1; height:1px; background:var(--border);}
+  .scenario-card{padding:19px; display:flex; flex-direction:column; gap:11px; transition:.15s; cursor:pointer;}
+  .scenario-card:hover{box-shadow:var(--shadow-lg); transform:translateY(-2px); border-color:#ffd899;}
+  .scenario-top h4{font-size:15.5px; color:var(--primary);}
+  .scenario-card .store-line{font-size:12px; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:5px;}
+  .scenario-goal{font-size:13px; color:var(--muted); line-height:1.5;}
+  .badges-row{display:flex; gap:6px; flex-wrap:wrap;}
+
+  .call-layout{display:grid; grid-template-columns:330px 1fr; gap:18px; align-items:start;}
+  @media(max-width:960px){.call-layout{grid-template-columns:1fr;}}
+
+  .phone-card{background:linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius:18px; padding:24px 20px; color:#fff; box-shadow:var(--shadow-lg); position:sticky; top:86px;}
+  .phone-brand{display:flex; align-items:center; gap:6px; font-size:10.5px; color:#9FB4CE; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px;}
+  .phone-status{text-align:center; font-size:12px; color:#A9BCD3; font-weight:600; min-height:16px;}
+  .phone-avatar-wrap{display:flex; justify-content:center; margin:14px 0 10px;}
+  .phone-avatar{width:88px; height:88px; border-radius:50%; background:rgba(255,255,255,.1); border:1.5px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; box-shadow:0 0 0 6px rgba(255,255,255,.04);}
+  .phone-avatar.ringing{animation:pulseRing 1.4s infinite;}
+  @keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(255,153,0,.5);} 70%{box-shadow:0 0 0 16px rgba(255,153,0,0);} 100%{box-shadow:0 0 0 0 rgba(255,153,0,0);}}
+  .phone-name{text-align:center; font-size:16px; font-weight:700; margin-top:8px;}
+  .phone-number{text-align:center; font-size:12.5px; color:#9FB4CE; margin-top:2px;}
+  .phone-timer{text-align:center; font-size:12.5px; color:var(--accent); font-weight:700; margin-top:10px; font-variant-numeric:tabular-nums;}
+  .live-caption{min-height:34px; text-align:center; font-size:12px; color:#D7E3F1; font-style:italic; padding:6px 4px; line-height:1.4;}
+  .mode-select{margin-bottom:14px;}
+  .mode-pills{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:6px;}
+  .mode-pill{border:1.5px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#D7E3F1; border-radius:8px; padding:8px 4px; font-size:11px; font-weight:700; text-align:center;}
+  .mode-pill.selected{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .mode-pill.locked{opacity:.35; cursor:not-allowed;}
+  .wave{display:flex; align-items:flex-end; justify-content:center; gap:3px; height:24px; margin:12px 0;}
+  .wave span{width:3px; background:var(--accent); border-radius:2px; height:6px; opacity:.35;}
+  .wave.live span{animation:wv 1s infinite ease-in-out; opacity:1;}
+  .wave span:nth-child(1){animation-delay:.0s;} .wave span:nth-child(2){animation-delay:.1s;}
+  .wave span:nth-child(3){animation-delay:.2s;} .wave span:nth-child(4){animation-delay:.3s;}
+  .wave span:nth-child(5){animation-delay:.4s;} .wave span:nth-child(6){animation-delay:.5s;}
+  .wave span:nth-child(7){animation-delay:.6s;} .wave span:nth-child(8){animation-delay:.7s;}
+  @keyframes wv{0%,100%{height:6px;} 50%{height:22px;}}
+
+  .phone-controls{display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin-top:18px;}
+  .phone-controls .icon-btn{width:100%; height:54px; background:rgba(255,255,255,.08); color:#fff;}
+  .phone-controls .icon-btn small{font-size:9px; color:#A9BCD3; font-weight:600;}
+  .phone-controls .icon-btn.on{background:var(--accent); color:#fff;}
+  .phone-controls .icon-btn.on small{color:#fff;}
+  .phone-controls .icon-btn:hover{background:rgba(255,255,255,.14);}
+  .end-call-row{margin-top:12px;}
+  .end-call-btn{width:100%; background:var(--red); color:#fff; border:none; border-radius:12px; padding:13px; font-weight:700; font-size:13.5px; display:flex; align-items:center; justify-content:center; gap:8px;}
+  .end-call-btn:hover{background:#8f2717;}
+  .accept-decline{display:flex; gap:9px; margin-top:16px;}
+  .accept-decline button{flex:1; border:none; border-radius:12px; padding:13px; font-weight:700; color:#fff; display:flex; align-items:center; justify-content:center; gap:7px;}
+  .accept-decline .accept{background:var(--green);}
+  .accept-decline .decline{background:var(--red);}
+
+  .panel-head{display:flex; justify-content:space-between; align-items:center; padding:15px 18px; border-bottom:1px solid var(--border);}
+  .panel-head h4{font-size:14px; display:flex; align-items:center; gap:8px; color:var(--primary);}
+  .toggle-line{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); font-weight:600;}
+  .switch{position:relative; width:32px; height:18px; background:var(--border); border-radius:999px; cursor:pointer; transition:.15s;}
+  .switch.on{background:var(--accent);}
+  .switch .knob{position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; transition:.15s;}
+  .switch.on .knob{left:16px;}
+
+  .transcript{padding:18px; min-height:300px; max-height:440px; overflow-y:auto; display:flex; flex-direction:column; gap:11px;}
+  .bubble-row{display:flex; gap:9px; max-width:82%;}
+  .bubble-row.trainee{align-self:flex-end; flex-direction:row-reverse;}
+  .bubble-avatar{width:28px; height:28px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; overflow:hidden;}
+  .bubble-avatar img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
+  .bubble-avatar.store{background:var(--primary);}
+  .bubble-avatar.trainee{background:var(--accent);}
+  .bubble{padding:11px 13px; border-radius:12px; font-size:13.3px; line-height:1.5;}
+  .bubble.store{background:var(--primary-tint); color:var(--text); border-bottom-left-radius:3px;}
+  .bubble.trainee{background:var(--accent-tint); color:var(--text); border-bottom-right-radius:3px;}
+  .bubble.blurred{filter:blur(5px); user-select:none;}
+  .bubble-tag{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted-2); margin-bottom:5px;}
+
+  .transcript-controls{padding:14px 18px; border-top:1px solid var(--border); display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .rec-indicator{display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--red);}
+  .rec-dot{width:8px; height:8px; border-radius:50%; background:var(--red); animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:.25;}}
+
+  .wrapup{padding:22px;}
+  .checklist-item{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px dashed var(--border); font-size:13.5px;}
+  .checklist-item:last-child{border-bottom:none;}
+  .checklist-item input{width:auto; margin-top:3px;}
+
+  #toast-container{position:fixed; bottom:22px; right:22px; display:flex; flex-direction:column; gap:9px; z-index:999;}
+  .toast{background:var(--primary); color:#fff; padding:12px 17px; border-radius:9px; font-size:13px; font-weight:600; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:9px; min-width:230px; animation:toastIn .25s ease;}
+  .toast.success{background:var(--green);}
+  .toast.warn{background:var(--amber);}
+  .toast.error{background:var(--red);}
+  @keyframes toastIn{from{opacity:0; transform:translateX(24px);} to{opacity:1; transform:none;}}
+
+  .stat-card{padding:19px; text-align:center;}
+  .stat-num{font-size:27px; color:var(--primary); font-weight:800;}
+  .stat-label{font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.03em; margin-top:4px;}
+
+  .competency-card{padding:20px;}
+  .competency-bar{height:10px; border-radius:999px; background:var(--border); overflow:hidden; margin-top:12px;}
+  .competency-fill{height:100%; background:linear-gradient(90deg, var(--primary), var(--accent)); border-radius:999px; transition:width .4s ease;}
+  .competency-levels{display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--muted-2); font-weight:600;}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:10px 14px; border-bottom:2px solid var(--border);}
+  td{padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .row-clickable:hover{background:var(--bg); cursor:pointer;}
+
+  .empty-state{text-align:center; padding:46px 20px; color:var(--muted); font-size:13.5px;}
+  .empty-state .icon-wrap{margin-bottom:10px; display:flex; justify-content:center; color:var(--muted-2);}
+
+  .queue-item{padding:16px 18px; display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;}
+  .queue-item .who{font-weight:700; color:var(--primary); font-size:13.8px;}
+  .queue-item .meta{font-size:12px; color:var(--muted); margin-top:2px;}
+  .review-panel{padding:20px; border-top:2px solid var(--accent-tint); background:#fffaf3;}
+  .score-row{display:flex; gap:8px; margin-top:8px;}
+  .score-pill{flex:1; text-align:center; padding:9px; border-radius:8px; border:1.5px solid var(--border); font-weight:700; font-size:13px; color:var(--muted);}
+  .score-pill.selected{background:var(--accent); border-color:var(--accent); color:#fff;}
+  audio{width:100%; margin-top:10px; border-radius:8px;}
+
+  .tabs{display:flex; gap:5px; margin-bottom:18px; background:var(--card); padding:4px; border-radius:10px; border:1px solid var(--border); width:fit-content; flex-wrap:wrap;}
+  .tabs button{border:none; background:transparent; padding:8px 14px; border-radius:7px; font-weight:700; font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:7px;}
+  .tabs button.active{background:var(--primary); color:#fff;}
+
+  .subtabs{display:flex; gap:8px; margin-bottom:14px;}
+  .subtabs button{border:1px solid var(--border); background:var(--card); padding:7px 13px; border-radius:7px; font-weight:700; font-size:12px; color:var(--text);}
+  .subtabs button.active{background:var(--primary); color:#fff; border-color:var(--primary);}
+
+  .modal-backdrop{position:fixed; inset:0; background:rgba(7,20,35,.55); display:flex; align-items:flex-start; justify-content:center; z-index:200; padding:36px 20px; overflow-y:auto;}
+  .modal{background:#fff; border-radius:16px; max-width:640px; width:100%; box-shadow:var(--shadow-lg); animation:fadeUp .2s ease;}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; padding:18px 22px; border-bottom:1px solid var(--border);}
+  .modal-head h3{font-size:15.5px; color:var(--primary);}
+  .modal-body{padding:20px 22px; max-height:65vh; overflow-y:auto;}
+  .modal-foot{padding:15px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:9px;}
+  .close-x{border:none; background:var(--bg); width:28px; height:28px; border-radius:50%; color:var(--muted); display:flex; align-items:center; justify-content:center;}
+
+  .script-row-edit{display:grid; grid-template-columns:108px 1fr 32px; gap:8px; margin-bottom:8px; align-items:start;}
+  .mini-x{border:none; background:var(--red-tint); color:var(--red); width:32px; height:32px; border-radius:7px; display:flex; align-items:center; justify-content:center;}
+  .add-line-btn{font-size:12px; color:var(--primary); background:none; border:none; font-weight:700; padding:6px 0; display:flex; align-items:center; gap:5px;}
+
+  .hint-banner{background:var(--primary-tint); color:var(--primary); font-size:12px; padding:10px 14px; border-radius:8px; margin-bottom:16px; display:flex; gap:8px; align-items:flex-start;}
+  .app-footer{border-top:1px solid var(--border); background:var(--card); margin-top:48px;}
+  .app-footer p{max-width:1200px; margin:0 auto; padding:16px 24px; font-size:11.5px; color:var(--muted-2); text-align:center; line-height:1.5;}
+  @media(max-width:760px){
+    .topbar{padding:10px 16px;}
+    .topbar-left{gap:12px;}
+    .brand-divider{display:none;}
+    .brand-text span{display:none;}
+    .topnav button{padding:7px 10px; font-size:12px;}
+    .user-chip .who small{display:none;}
+    main{padding:18px 14px 60px;}
+  }
+  .settings-form label.field-label{margin-top:14px;}
+</style>
+</head>
+<body>
+
+<div id="appLoading"><div class="spinner"></div><span>Loading Call Simulator…</span></div>
+<div id="toast-container"></div>
+
+<div id="appRoot" style="display:none;">
+
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="brand">
+      <div class="brand-logo-chip"><img id="brandLogo" src="" alt="Company logo"></div>
+      <div class="brand-text"><b id="brandAppName">Call Simulator</b><span id="brandSubtitle">ARETEX · BSS POS Operations</span></div>
+    </div>
+    <div class="brand-divider"></div>
+    <nav class="topnav" id="topnav"></nav>
+  </div>
+  <div class="top-right" id="topRight" style="display:none;">
+    <div class="user-chip" id="userChip"></div>
+    <button class="logout-btn" id="logoutBtn" onclick="requestLogout()" title="Log out"></button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== LOGIN ===================== -->
+  <section class="view" id="view-login">
+    <div class="card login-card pad">
+      <h2>Sign in</h2>
+      <p>Practice calling Blooms The Chemist stores in a guided simulation designed to prepare you for real client conversations. Build your confidence handling both outbound and inbound calls. Sign in with your BSS POS Operations account to begin.</p>
+      <div class="login-error" id="loginError"></div>
+      <label class="field-label">Username</label>
+      <input type="text" id="loginUsername" style="margin-bottom:12px;" autocomplete="username">
+      <label class="field-label">Password</label>
+      <input type="password" id="loginPassword" style="margin-bottom:16px;" autocomplete="current-password">
+      <button class="btn btn-primary btn-block" id="loginBtn" onclick="doLogin()">Sign In</button>
+    </div>
+  </section>
+
+  <!-- ===================== AGENT: HOME ===================== -->
+  <section class="view" id="view-trainee-home">
+    <div class="page-head">
+      <div class="eyebrow">Analyst workspace</div>
+      <h1>Select a call scenario</h1>
+      <p>Each scenario shows exactly what the store expects to hear. Review it, rehearse it, then run the simulated call.</p>
+    </div>
+
+    <div class="section-title"><h3>Outbound calls: you call the store</h3><div class="line"></div></div>
+    <div class="grid grid-3" id="outboundGrid"></div>
+
+    <div class="section-title"><h3>Inbound calls: the store calls you back</h3><div class="line"></div></div>
+    <div class="grid grid-3" id="inboundGrid"></div>
+  </section>
+
+  <!-- ===================== CALL SIMULATOR ===================== -->
+  <section class="view" id="view-call">
+    <div class="page-head" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+      <div>
+        <div class="eyebrow" id="callEyebrow">Live simulation</div>
+        <h1 id="callTitle">Call scenario</h1>
+      </div>
+      <button class="btn btn-ghost" id="backToScenariosBtn" onclick="exitCall()"></button>
+    </div>
+
+    <div class="call-layout">
+      <div class="phone-card">
+        <div class="phone-brand" id="phoneBrandLabel"></div>
+        <div class="phone-status" id="phoneStatus">Ready to dial</div>
+        <div class="phone-avatar-wrap"><div class="phone-avatar" id="phoneAvatar">—</div></div>
+        <div class="phone-name" id="phoneName">—</div>
+        <div class="phone-number" id="phoneNumber">—</div>
+        <div class="wave" id="callWave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="phone-timer" id="phoneTimer">00:00</div>
+        <div class="live-caption" id="liveCaption"></div>
+        <div class="hint-banner" id="micErrorBanner" style="display:none; background:rgba(179,49,31,.16); color:#ffb4a8; text-align:left;"></div>
+
+        <div id="preCallActions">
+          <div class="mode-select">
+            <label class="field-label" style="color:#A9BCD3;">Practice mode</label>
+            <div class="mode-pills" id="modePills"></div>
+          </div>
+          <button class="btn btn-primary btn-block" id="dialBtn" onclick="beginCall()"></button>
+        </div>
+
+        <div id="inCallControls" style="display:none;">
+          <div class="phone-controls">
+            <button class="icon-btn" id="muteBtn" onclick="toggleMute()"></button>
+            <button class="icon-btn" id="recBtn" onclick="toggleRecording()"></button>
+            <button class="icon-btn" id="speakerBtn" onclick="toggleSpeaker()"></button>
+            <button class="icon-btn" id="notesBtnPhone" onclick="focusNotes()"></button>
+          </div>
+          <div class="end-call-row"><button class="end-call-btn" id="endCallBtn" onclick="endCall()"></button></div>
+        </div>
+
+        <div id="acceptDeclineWrap" style="display:none;">
+          <div class="accept-decline">
+            <button class="decline" id="declineBtn" onclick="declineInbound()"></button>
+            <button class="accept" id="acceptBtn" onclick="acceptInbound()"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="transcriptCard">
+        <div class="panel-head">
+          <h4 id="scriptPanelTitle"></h4>
+          <div class="toggle-line">Hide my lines<div class="switch" id="hideSwitch" onclick="toggleHideLines()"><div class="knob"></div></div></div>
+        </div>
+        <div class="transcript" id="transcript"></div>
+        <div class="transcript-controls" id="transcriptControls"></div>
+      </div>
+    </div>
+
+    <div class="card" id="wrapupCard" style="display:none; margin-top:20px;">
+      <div class="panel-head"><h4 id="wrapupTitle"></h4></div>
+      <div class="wrapup">
+        <div id="checklistWrap"></div>
+        <label class="field-label" style="margin-top:16px;">Notes for the reviewer (optional)</label>
+        <textarea id="callNotes" rows="3" placeholder="Anything you want your reviewer to know about this attempt..."></textarea>
+        <div id="recordingReview" style="margin-top:16px; display:none;">
+          <label class="field-label">Your recording</label>
+          <audio id="playbackAudio" controls></audio>
+        </div>
+        <div id="transcriptReview" style="margin-top:16px; display:none;">
+          <label class="field-label">Auto-transcribed speech (what the system heard)</label>
+          <div class="transcript-block" id="transcriptReviewText"></div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+          <button class="btn btn-outline" id="retryCallBtn" onclick="retryWholeCall()"></button>
+          <button class="btn btn-ghost" id="discardCallBtn" onclick="discardCall()"></button>
+          <button class="btn btn-primary" id="submitReviewBtn" style="margin-left:auto;" onclick="submitForReview()"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== AGENT: PROGRESS ===================== -->
+  <section class="view" id="view-trainee-progress">
+    <div class="page-head">
+      <div class="eyebrow">Your progress</div>
+      <h1>Training dashboard</h1>
+      <p>Track your attempts, submissions, and reviewer feedback.</p>
+    </div>
+    <div class="grid grid-4" id="progressStats"></div>
+    <div class="card competency-card" style="margin-top:18px;">
+      <h4 style="font-size:13.5px; color:var(--primary); text-transform:uppercase; letter-spacing:.03em;">Competency level</h4>
+      <div class="competency-bar"><div class="competency-fill" id="competencyFill" style="width:0%;"></div></div>
+      <div class="competency-levels"><span>Foundational</span><span>Proficient</span><span>Advanced</span></div>
+    </div>
+    <div class="section-title"><h3>Your submissions</h3><div class="line"></div></div>
+    <div class="card" id="mySubmissionsList"></div>
+  </section>
+
+  <!-- ===================== REVIEWER ===================== -->
+  <section class="view" id="view-admin">
+    <div class="page-head">
+      <div class="eyebrow">Reviewer workspace</div>
+      <h1>Quality assurance &amp; program administration</h1>
+      <p>Review recordings, control exactly what agents see, manage users, and track team progress.</p>
+    </div>
+    <div class="tabs" id="adminTabs">
+      <button class="active" data-tab="queue" onclick="showAdminTab('queue')"></button>
+      <button data-tab="scripts" onclick="showAdminTab('scripts')"></button>
+      <button data-tab="roster" onclick="showAdminTab('roster')"></button>
+      <button data-tab="trainees" onclick="showAdminTab('trainees')"></button>
+      <button data-tab="settings" onclick="showAdminTab('settings')"></button>
+    </div>
+
+    <div id="admin-queue" class="admin-tab">
+      <div class="subtabs" id="queueFilterTabs"></div>
+      <div class="card" id="queueList"></div>
+    </div>
+
+    <div id="admin-scripts" class="admin-tab" style="display:none;">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+        <button class="btn btn-primary" id="newScenarioBtn" onclick="openScriptEditor(null)"></button>
+      </div>
+      <div class="card"><table id="scriptsTable"></table></div>
+    </div>
+
+    <div id="admin-roster" class="admin-tab" style="display:none;">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+        <button class="btn btn-primary" id="newUserBtn" onclick="openUserEditor(null)"></button>
+      </div>
+      <div class="card"><table id="rosterTable"></table></div>
+    </div>
+
+    <div id="admin-trainees" class="admin-tab" style="display:none;">
+      <div class="card"><table id="traineesTable"></table></div>
+    </div>
+
+    <div id="admin-settings" class="admin-tab" style="display:none;">
+      <div class="card pad settings-form" style="max-width:560px;">
+        <div class="hint-banner" id="settingsHint"></div>
+        <label class="field-label">Application name</label>
+        <input type="text" id="set-appName">
+        <label class="field-label">Team name</label>
+        <input type="text" id="set-teamName">
+        <label class="field-label">Company name</label>
+        <input type="text" id="set-companyName">
+        <label class="field-label">Logo URL</label>
+        <input type="text" id="set-logoUrl">
+        <div class="grid grid-2">
+          <div><label class="field-label">Primary colour (header / brand)</label><input type="text" id="set-primaryColor"></div>
+          <div><label class="field-label">Accent colour (buttons / highlights)</label><input type="text" id="set-accentColor"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:18px;" onclick="saveBrandingSettings()">Save settings</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <p>BSS POS Call Simulator is an internal ARETEX training tool. It does not place real calls. All scenarios and recordings are for practice and coaching purposes only.</p>
+</footer>
+
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+/* ============================================================
+   ICONS
+   ============================================================ */
+const ICONS = {
+  phone: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>',
+  phoneOut: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M15 4h5v5"/><path d="M20 4l-6 6"/>',
+  phoneIn: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M20 4l-6 6"/><path d="M14.5 4H20v5.5"/>',
+  mic: '<rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3"/><path d="M8 22h8"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  x: '<path d="M18 6 6 18"/><path d="M6 6l12 12"/>',
+  chevronRight: '<path d="M9 6l6 6-6 6"/>',
+  alert: '<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.4 3-5.2 6.5-5.2s6.5 1.8 6.5 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 13.2c2.6.3 4.5 1.8 4.5 4.3"/>',
+  sliders: '<path d="M4 6h10"/><path d="M17 6h3"/><circle cx="14.5" cy="6" r="2.2"/><path d="M4 12h4"/><path d="M11 12h9"/><circle cx="7.5" cy="12" r="2.2"/><path d="M4 18h10"/><path d="M17 18h3"/><circle cx="14.5" cy="18" r="2.2"/>',
+  clipboard: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 13l2 2 4-4"/>',
+  building: '<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 8h.01"/><path d="M15 8h.01"/><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M9 16h.01"/><path d="M15 16h.01"/><path d="M10 21v-4h4v4"/>',
+  arrowLeft: '<path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/>',
+  volume: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8a5 5 0 0 1 0 8"/>',
+  edit: '<path d="M4 20h4l11-11-4-4L4 16v4z"/>',
+  plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  refresh: '<path d="M20 11A8 8 0 0 0 5.5 6.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/>',
+  notes: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h3"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'
+};
+function icon(name, size){ size = size || 16; return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[name]||'')+'</svg>'; }
+
+/* ============================================================
+   SERVER BRIDGE
+   ============================================================ */
+/**
+ * If this page is opened through the Apps Script /exec URL, google.script.run
+ * is available and is used as normal. If this same file is instead hosted
+ * externally (GitHub Pages, Firebase Hosting, your own server, etc, any
+ * plain HTTPS static host), google.script.run will not exist, so this falls
+ * back to calling the deployed Web App as a plain JSON API over fetch().
+ * This second path is what makes microphone recording work reliably: pages
+ * served through Google's Apps Script wrapper run inside a sandboxed iframe
+ * that blocks getUserMedia by Permissions Policy, and that restriction
+ * cannot be lifted from inside the page. Hosting the exact same file outside
+ * that wrapper removes the restriction entirely.
+ *
+ * To enable the external-hosting path, paste your deployed /exec URL below.
+ */
+const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbxEyECXMoE8_vnXi3l_bfWJTpSAxRT7f_9NaXsIEIE/dev';
+
+function usingAppsScriptBridge_(){
+  return (typeof google !== 'undefined' && !!google.script && !!google.script.run);
+}
+
+function gsRun(fnName){
+  const args = Array.prototype.slice.call(arguments, 1);
+
+  if(usingAppsScriptBridge_()){
+    return new Promise(function(resolve, reject){
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(function(err){ reject(err); })[fnName].apply(null, args);
+    });
+  }
+
+  if(!DEPLOYED_WEBAPP_URL || DEPLOYED_WEBAPP_URL.indexOf('PASTE_YOUR') === 0){
+    return Promise.reject(new Error('This page is hosted standalone but DEPLOYED_WEBAPP_URL has not been set. Open Code.gs, deploy the Web App, and paste the exec URL into the DEPLOYED_WEBAPP_URL constant near the top of the script.'));
+  }
+
+  // text/plain avoids a CORS preflight (Apps Script cannot answer OPTIONS requests).
+  return fetch(DEPLOYED_WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ fn: fnName, args: args })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data || !data.success) throw new Error((data && data.error) || 'Server error');
+      return data.result;
+    });
+}
+
+/* ============================================================
+   STATE / RBAC
+   ============================================================ */
+let settings = {};
+let currentUser = null;
+let state = { scenarios:[], submissions:[] };
+let call = null;
+let mediaStream = null, mediaRecorder = null, audioChunks = [];
+let timerInterval = null;
+let hideLines = false;
+let queueFilter = 'all';
+let expandedSubmissionId = null;
+
+function isApproverOrAdmin(u){ return !!u && (u.Role === 'Approver' || u.Role === 'Admin'); }
+function isAdmin(u){ return !!u && u.Role === 'Admin'; }
+
+/* ============================================================
+   INIT
+   ============================================================ */
+async function init(){
+  try{
+    settings = await gsRun('getSettings');
+    applyBranding(settings);
+    renderStaticLabels();
+    document.getElementById('appLoading').style.display = 'none';
+    document.getElementById('appRoot').style.display = 'block';
+    showView('login');
+  }catch(err){
+    document.getElementById('appLoading').innerHTML =
+      '<div style="max-width:420px; text-align:center; color:var(--red); font-size:13.5px;">'+
+      'Could not load the simulator. If this is the first run, open Apps Script and run <b>setupSheets</b> once, then reload this page.'+
+      '<br><br><span style="color:var(--muted);">'+ (err && err.message ? err.message : err) +'</span></div>';
+    console.error(err);
+  }
+}
+
+function applyBranding(s){
+  document.documentElement.style.setProperty('--primary', s.PRIMARY_COLOR || '#073763');
+  document.documentElement.style.setProperty('--accent', s.ACCENT_COLOR || '#FF9900');
+  document.title = (s.APP_NAME || 'Call Simulator') + ' · ' + (s.COMPANY_NAME || 'ARETEX');
+  document.getElementById('brandAppName').textContent = s.APP_NAME || 'Call Simulator';
+  document.getElementById('brandSubtitle').textContent = (s.COMPANY_NAME || 'ARETEX') + ' · ' + (s.TEAM_NAME || 'BSS POS Operations');
+  document.getElementById('brandLogo').src = s.LOGO_URL || '';
+}
+
+function renderStaticLabels(){
+  document.getElementById('logoutBtn').innerHTML = icon('logout',15);
+  document.getElementById('backToScenariosBtn').innerHTML = icon('arrowLeft',15) + ' Back to scenarios';
+  document.getElementById('dialBtn').innerHTML = icon('phoneOut',15) + ' Start Call';
+  document.getElementById('muteBtn').innerHTML = icon('mic',17) + '<small>Mute</small>';
+  document.getElementById('recBtn').innerHTML = icon('notes',17) + '<small>Record</small>';
+  document.getElementById('speakerBtn').innerHTML = icon('volume',17) + '<small>Speaker</small>';
+  document.getElementById('notesBtnPhone').innerHTML = icon('clipboard',17) + '<small>Notes</small>';
+  document.getElementById('endCallBtn').innerHTML = icon('x',16) + ' End Call';
+  document.getElementById('declineBtn').innerHTML = icon('x',15) + ' Decline';
+  document.getElementById('acceptBtn').innerHTML = icon('check',15) + ' Accept';
+  document.getElementById('scriptPanelTitle').innerHTML = icon('clipboard',16) + ' Call script';
+  document.getElementById('wrapupTitle').innerHTML = icon('check',16) + ' Call complete: quick self-check';
+  document.getElementById('retryCallBtn').innerHTML = icon('refresh',14) + ' Retry Call';
+  document.getElementById('discardCallBtn').textContent = 'Discard & Exit';
+  document.getElementById('submitReviewBtn').innerHTML = 'Send to Reviewer ' + icon('chevronRight',14);
+  document.getElementById('newScenarioBtn').innerHTML = icon('plus',14) + ' New Scenario';
+  document.getElementById('newUserBtn').innerHTML = icon('plus',14) + ' Add User';
+
+  document.querySelector('[data-tab="queue"]').innerHTML = icon('clipboard',14) + ' Review Queue';
+  document.querySelector('[data-tab="scripts"]').innerHTML = icon('edit',14) + ' Scenario Manager';
+  document.querySelector('[data-tab="roster"]').innerHTML = icon('users',14) + ' User Manager';
+  document.querySelector('[data-tab="trainees"]').innerHTML = icon('user',14) + ' Analyst Progress';
+  document.querySelector('[data-tab="settings"]').innerHTML = icon('sliders',14) + ' Settings';
+
+  document.getElementById('settingsHint').innerHTML = icon('alert',16) + '<span>Changes here apply immediately across the app for every agent and reviewer, including branding and colours.</span>';
+
+  const qf = document.getElementById('queueFilterTabs');
+  qf.innerHTML = ['all:All','pending:Pending','retry:Sent back','approved:Approved'].map(function(pair){
+    const parts = pair.split(':');
+    return '<button data-qf="'+parts[0]+'" class="'+(parts[0]==='all'?'active':'')+'" onclick="setQueueFilter(\''+parts[0]+'\')">'+parts[1]+'</button>';
+  }).join('');
+}
+
+function toast(msg, type){
+  type = type || 'default';
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(function(){ el.style.opacity='0'; el.style.transition='.3s'; setTimeout(function(){ el.remove(); },300); }, 3400);
+}
+
+function beep(freq, dur, delay){
+  freq = freq||440; dur = dur||140; delay = delay||0;
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    setTimeout(function(){
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.frequency.value = freq; osc.type='sine';
+      osc.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      osc.start(); osc.stop(ctx.currentTime + dur/1000);
+    }, delay);
+  }catch(e){}
+}
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate=0.98; u.pitch=0.95; speechSynthesis.speak(u); }catch(e){}
+}
+
+/* ============================================================
+   LOGIN / LOGOUT
+   ============================================================ */
+async function doLogin(){
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try{
+    currentUser = await gsRun('login', username, password);
+    btn.disabled = false; btn.innerHTML = 'Sign In';
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    await afterLogin();
+  }catch(err){
+    btn.disabled = false; btn.innerHTML = 'Sign In';
+    errEl.textContent = (err && err.message) ? err.message : 'Invalid username or password.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function afterLogin(){
+  const [scenarios, submissions] = await Promise.all([gsRun('getScenarios'), gsRun('getSubmissions')]);
+  state.scenarios = scenarios;
+  state.submissions = submissions;
+  renderTopnav();
+  renderUserChip();
+  document.getElementById('topRight').style.display = 'flex';
+  showView(isApproverOrAdmin(currentUser) ? 'admin' : 'trainee-home');
+  toast('Welcome back, ' + currentUser.Name + '.', 'success');
+}
+
+function requestLogout(){
+  const root = document.getElementById('modal-root');
+  root.innerHTML =
+    '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal" style="max-width:380px;">'+
+    '<div class="modal-head"><h3>Log out</h3><button class="close-x" onclick="closeModal()">'+icon('x',14)+'</button></div>'+
+    '<div class="modal-body" style="text-align:center; padding:28px 22px;">'+
+      '<p style="font-size:13.5px; color:var(--muted); line-height:1.6;">You will be signed out of the Call Simulator and returned to the sign-in screen.</p>'+
+    '</div>'+
+    '<div class="modal-foot" style="justify-content:center;">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'+
+      '<button class="btn btn-danger" onclick="confirmLogout()">Log out</button>'+
+    '</div></div></div>';
+}
+function confirmLogout(){
+  closeModal();
+  logout();
+}
+function logout(){
+  currentUser = null;
+  document.getElementById('topRight').style.display = 'none';
+  document.getElementById('topnav').innerHTML = '';
+  showView('login');
+}
+
+/* ============================================================
+   NAV / VIEW SWITCHING
+   ============================================================ */
+function renderTopnav(){
+  const nav = document.getElementById('topnav');
+  const practiceBtn = '<button data-v="trainee-home" onclick="showView(\'trainee-home\')">'+icon('phone',13)+' Practice</button>';
+  const progressBtn = '<button data-v="trainee-progress" onclick="showView(\'trainee-progress\')">'+icon('user',13)+' My Progress</button>';
+  const dashboardBtn = '<button data-v="admin" onclick="showView(\'admin\')">'+icon('sliders',13)+' Dashboard</button>';
+  nav.innerHTML = isApproverOrAdmin(currentUser)
+    ? dashboardBtn + practiceBtn + progressBtn
+    : practiceBtn + progressBtn;
+}
+
+function renderUserChip(){
+  const chip = document.getElementById('userChip');
+  const avatarInner = currentUser.Image
+    ? '<img src="'+escapeAttr(currentUser.Image)+'" onerror="this.parentElement.textContent=\''+initials(currentUser.Name)+'\';">'
+    : initials(currentUser.Name);
+  chip.innerHTML =
+    '<div class="avatar-mini">'+avatarInner+'</div>'+
+    '<div class="who">'+escapeHtml(currentUser.Name)+'<small>'+escapeHtml(currentUser.Position||'')+'</small></div>';
+}
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('#topnav button').forEach(function(b){ b.classList.toggle('active', b.dataset.v===name); });
+
+  if(name==='trainee-home') renderScenarios();
+  if(name==='trainee-progress') renderTraineeProgress();
+  if(name==='admin'){
+    renderAdminTabsVisibility();
+    renderQueue(); renderScriptsTable(); renderRosterTable(); renderTraineesTable(); renderSettingsForm();
+  }
+}
+
+function renderAdminTabsVisibility(){
+  const adminOnly = ['scripts','roster','settings'];
+  document.querySelectorAll('#adminTabs button').forEach(function(b){
+    if(adminOnly.indexOf(b.dataset.tab) > -1){
+      b.style.display = isAdmin(currentUser) ? 'flex' : 'none';
+    }
+  });
+  const activeTab = document.querySelector('#adminTabs button.active');
+  if(activeTab && adminOnly.indexOf(activeTab.dataset.tab) > -1 && !isAdmin(currentUser)){
+    showAdminTab('queue');
+  }
+}
+
+function initials(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(function(w){ return w[0].toUpperCase(); }).join(''); }
+function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str||''; return d.innerHTML; }
+function escapeAttr(str){ return (str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+/* ============================================================
+   SCENARIO CARDS
+   ============================================================ */
+function scenarioCardHTML(s){
+  const diffClass = 'badge-'+s.difficulty.toLowerCase();
+  const dirClass = 'badge-'+s.direction;
+  return (
+    '<div class="card scenario-card" onclick="openCall(\''+s.id+'\')">'+
+      '<div class="scenario-top"><h4>'+escapeHtml(s.title)+'</h4>'+
+        '<div class="store-line">'+icon('building',13)+' '+escapeHtml(s.storeName)+' · '+escapeHtml(s.phone)+'</div></div>'+
+      '<div class="badges-row">'+
+        '<span class="badge '+dirClass+'">'+(s.direction==='outbound'?icon('phoneOut',11)+' Outbound':icon('phoneIn',11)+' Inbound')+'</span>'+
+        '<span class="badge '+diffClass+'">'+s.difficulty+'</span>'+
+        '<span class="badge badge-category">'+escapeHtml(s.category||'General')+'</span>'+
+      '</div>'+
+      '<div class="scenario-goal">'+escapeHtml(s.goal)+'</div>'+
+      '<button class="btn btn-primary btn-block">'+(s.direction==='outbound'?'Start Call':'Simulate Incoming Call')+' '+icon('chevronRight',14)+'</button>'+
+    '</div>');
+}
+function renderScenarios(){
+  const out = state.scenarios.filter(function(s){ return s.direction==='outbound'; });
+  const inb = state.scenarios.filter(function(s){ return s.direction==='inbound'; });
+  document.getElementById('outboundGrid').innerHTML = out.map(scenarioCardHTML).join('') || emptyState('No outbound scenarios yet.');
+  document.getElementById('inboundGrid').innerHTML = inb.map(scenarioCardHTML).join('') || emptyState('No inbound scenarios yet.');
+}
+function emptyState(msg, iconName){
+  return '<div class="empty-state"><div class="icon-wrap">'+icon(iconName||'clipboard',30)+'</div>'+msg+'</div>';
+}
+
+/* ============================================================
+   CALL SIMULATOR
+   ============================================================ */
+function openCall(scenarioId){
+  const scenario = state.scenarios.find(function(s){ return s.id===scenarioId; });
+  call = { scenario:scenario, stepIndex:0, seconds:0, recordedURL:null, recordedBlob:null, muted:false, speaker:false, connected:false, mode:'Easy', hideLinesEverOn:false, speechTranscript:'' };
+  hideLines = false;
+  document.getElementById('hideSwitch').classList.remove('on');
+  renderModePills();
+  applyModeDefaults('Easy');
+  document.getElementById('liveCaption').textContent = '';
+  document.getElementById('callEyebrow').textContent = scenario.direction==='outbound' ? 'Outbound simulation' : 'Inbound simulation';
+  document.getElementById('callTitle').textContent = scenario.title;
+  document.getElementById('phoneName').textContent = scenario.storeName;
+  document.getElementById('phoneNumber').textContent = scenario.phone;
+  document.getElementById('phoneAvatar').textContent = initials(scenario.storeName);
+  document.getElementById('phoneAvatar').classList.remove('ringing');
+  document.getElementById('phoneTimer').textContent = '00:00';
+  document.getElementById('phoneBrandLabel').innerHTML = icon('phone',12) + ' Simulated Softphone';
+  document.getElementById('callWave').classList.remove('live');
+  document.getElementById('transcript').innerHTML = '';
+  document.getElementById('transcriptControls').innerHTML = '<p style="color:var(--muted); font-size:12.5px;">Press "Start Call" on the left to begin the simulation.</p>';
+  document.getElementById('wrapupCard').style.display = 'none';
+  document.getElementById('preCallActions').style.display = 'block';
+  document.getElementById('inCallControls').style.display = 'none';
+  document.getElementById('acceptDeclineWrap').style.display = 'none';
+
+  if(scenario.direction === 'outbound'){
+    document.getElementById('phoneStatus').textContent = 'Ready to dial';
+    document.getElementById('dialBtn').innerHTML = icon('phoneOut',15) + ' Start Call';
+  } else {
+    document.getElementById('phoneStatus').textContent = 'Ready to simulate';
+    document.getElementById('dialBtn').innerHTML = icon('phoneIn',15) + ' Simulate Incoming Call';
+  }
+  showView('call');
+}
+
+function renderModePills(){
+  const modes = [['Easy','Easy'],['Medium','Medium'],['Hard','Hard'],['Freestyle','Freestyle']];
+  document.getElementById('modePills').innerHTML = modes.map(function(m){
+    return '<button type="button" class="mode-pill '+(call.mode===m[0]?'selected':'')+'" onclick="selectMode(\''+m[0]+'\')">'+m[1]+'</button>';
+  }).join('');
+}
+function selectMode(mode){
+  call.mode = mode;
+  applyModeDefaults(mode);
+  renderModePills();
+}
+function applyModeDefaults(mode){
+  if(mode==='Easy'){ hideLines = false; }
+  else if(mode==='Medium'){ hideLines = true; call.hideLinesEverOn = true; }
+  else if(mode==='Hard'){ hideLines = true; call.hideLinesEverOn = true; }
+  else if(mode==='Freestyle'){ hideLines = false; }
+  document.getElementById('hideSwitch').classList.toggle('on', hideLines);
+  const toggleLine = document.querySelector('#transcriptCard .toggle-line');
+  if(toggleLine) toggleLine.style.display = (mode==='Hard' || mode==='Freestyle') ? 'none' : 'flex';
+  document.getElementById('scriptPanelTitle').innerHTML = (mode==='Freestyle')
+    ? icon('clipboard',16) + ' Live call (improvise, no script)'
+    : icon('clipboard',16) + ' Call script';
+}
+
+function beginCall(){
+  const scenario = call.scenario;
+  document.getElementById('preCallActions').style.display = 'none';
+  if(scenario.direction === 'outbound'){
+    document.getElementById('phoneStatus').textContent = 'Dialing…';
+    document.getElementById('phoneAvatar').classList.add('ringing');
+    beep(520,120,0); beep(520,120,500); beep(520,120,1000);
+    setTimeout(connectCall, 1600);
+  } else {
+    document.getElementById('phoneStatus').textContent = 'Incoming call…';
+    document.getElementById('phoneAvatar').classList.add('ringing');
+    document.getElementById('acceptDeclineWrap').style.display = 'block';
+    beep(660,150,0); beep(660,150,600); beep(660,150,1200); beep(660,150,1800);
+  }
+}
+function acceptInbound(){ document.getElementById('acceptDeclineWrap').style.display = 'none'; connectCall(); }
+function declineInbound(){ toast('Call declined. In real operations, missed store callbacks should be followed up quickly.', 'warn'); exitCall(); }
+
+async function connectCall(){
+  document.getElementById('phoneAvatar').classList.remove('ringing');
+  document.getElementById('phoneStatus').textContent = 'Connected';
+  document.getElementById('inCallControls').style.display = 'block';
+  document.getElementById('callWave').classList.add('live');
+  call.connected = true;
+  call.seconds = 0;
+  timerInterval = setInterval(function(){
+    call.seconds++;
+    const m = String(Math.floor(call.seconds/60)).padStart(2,'0');
+    const s = String(call.seconds%60).padStart(2,'0');
+    document.getElementById('phoneTimer').textContent = m+':'+s;
+  }, 1000);
+  document.getElementById('transcript').innerHTML = '';
+  renderTranscriptControls();
+  await startRecordingFlow_();
+  if(call.mode === 'Freestyle'){
+    startFreestyleCall();
+  } else {
+    advanceScript();
+  }
+}
+
+function startFreestyleCall(){
+  const s = call.scenario;
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-row store';
+  wrap.innerHTML =
+    '<div class="bubble-avatar store">'+icon('building',14)+'</div>'+
+    '<div class="bubble store"><div class="bubble-tag">Scenario context</div>'+
+    'Goal: '+escapeHtml(s.goal)+'<br>Store: '+escapeHtml(s.storeName)+' ('+escapeHtml(s.category||'General')+')</div>';
+  document.getElementById('transcript').appendChild(wrap);
+  document.getElementById('transcriptControls').innerHTML =
+    '<p style="color:var(--muted); font-size:12.5px;">No script for this mode. Speak naturally as if you were really on the call. Your speech is being captured live below and recorded. End the call when you\'re done.</p>';
+}
+
+function toggleMute(){
+  call.muted = !call.muted;
+  document.getElementById('muteBtn').classList.toggle('on', call.muted);
+  if(mediaStream) mediaStream.getAudioTracks().forEach(function(t){ t.enabled = !call.muted; });
+}
+function toggleSpeaker(){ call.speaker = !call.speaker; document.getElementById('speakerBtn').classList.toggle('on', call.speaker); }
+function focusNotes(){ toast('Notes are available in the wrap-up screen after you end the call.', 'default'); }
+
+function toggleHideLines(){
+  hideLines = !hideLines;
+  if(hideLines && call) call.hideLinesEverOn = true;
+  document.getElementById('hideSwitch').classList.toggle('on', hideLines);
+  document.querySelectorAll('.bubble.trainee').forEach(function(b){ b.classList.toggle('blurred', hideLines); });
+}
+
+function currentScriptLine(){ return call.scenario.script[call.stepIndex]; }
+
+function addBubble(speaker, text){
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-row ' + speaker;
+  const isTraineeBlur = speaker==='trainee' && hideLines;
+  const avatarInner = (speaker==='trainee' && currentUser.Image)
+    ? '<img src="'+escapeAttr(currentUser.Image)+'" onerror="this.parentElement.textContent=\''+initials(currentUser.Name)+'\';">'
+    : (speaker==='store' ? initials(call.scenario.storeName) : initials(currentUser.Name));
+  wrap.innerHTML =
+    '<div class="bubble-avatar '+speaker+'">'+avatarInner+'</div>'+
+    '<div class="bubble '+speaker+' '+(isTraineeBlur?'blurred':'')+'">'+
+      '<div class="bubble-tag">'+(speaker==='store' ? escapeHtml(call.scenario.storeName) : 'You say')+'</div>'+
+      escapeHtml(text)+
+    '</div>';
+  document.getElementById('transcript').appendChild(wrap);
+  document.getElementById('transcript').scrollTop = document.getElementById('transcript').scrollHeight;
+}
+
+function advanceScript(){
+  if(call.stepIndex >= call.scenario.script.length){ finishScript(); return; }
+  const line = currentScriptLine();
+  const text = line.text.replace('{name}', currentUser.Name || 'your trainer');
+  addBubble(line.speaker, text);
+  if(line.speaker === 'store') speak(text);
+  call.stepIndex++;
+  renderTranscriptControls();
+}
+
+function finishScript(){
+  document.getElementById('transcriptControls').innerHTML = '<p style="color:var(--green); font-weight:700; font-size:13px;">'+icon('check',14)+' Script complete. End the call when you\'re ready.</p>';
+}
+
+function renderTranscriptControls(){
+  const c = document.getElementById('transcriptControls');
+  const isRecording = mediaRecorder && mediaRecorder.state === 'recording';
+  const recHtml = isRecording ? '<div class="rec-indicator"><div class="rec-dot"></div> Recording</div>' : '';
+  if(call.stepIndex >= call.scenario.script.length){
+    c.innerHTML = recHtml + '<p style="color:var(--green); font-weight:700; font-size:13px; margin-left:auto;">'+icon('check',14)+' Script complete.</p>';
+    return;
+  }
+  const next = currentScriptLine();
+  if(next.speaker === 'store'){
+    c.innerHTML = recHtml + '<button class="btn btn-navy" onclick="advanceScript()">'+icon('chevronRight',14)+' Play store\'s response</button>';
+  } else {
+    c.innerHTML = recHtml + '<button class="btn btn-primary" onclick="advanceScript()">'+icon('check',14)+' I said my line, continue</button>';
+  }
+}
+
+function pickMimeType_(){
+  const candidates = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
+  for(let i=0;i<candidates.length;i++){
+    if(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(candidates[i])) return candidates[i];
+  }
+  return '';
+}
+
+let recognition = null;
+function getSpeechRecognitionCtor_(){ return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
+
+function startRecognition_(){
+  const SR = getSpeechRecognitionCtor_();
+  if(!SR) return;
+  try{
+    recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-AU';
+    recognition.onresult = function(event){
+      let interim = '';
+      for(let i = event.resultIndex; i < event.results.length; i++){
+        const piece = event.results[i][0].transcript;
+        if(event.results[i].isFinal){
+          call.speechTranscript = (call.speechTranscript ? call.speechTranscript + ' ' : '') + piece.trim();
+          document.getElementById('liveCaption').textContent = '';
+          if(call.mode === 'Freestyle') addBubble('trainee', piece.trim());
+        } else {
+          interim += piece;
+        }
+      }
+      if(interim) document.getElementById('liveCaption').textContent = interim;
+    };
+    recognition.onerror = function(e){ console.warn('Speech recognition:', e.error); };
+    recognition.onend = function(){
+      // Auto-restart if the user is still recording (browsers auto-stop after silence)
+      if(mediaRecorder && mediaRecorder.state === 'recording'){
+        try{ recognition.start(); }catch(e){}
+      }
+    };
+    recognition.start();
+  }catch(e){ console.warn('Could not start speech recognition:', e); recognition = null; }
+}
+function stopRecognition_(){
+  if(recognition){
+    try{ recognition.onend = null; recognition.stop(); }catch(e){}
+    recognition = null;
+  }
+  document.getElementById('liveCaption').textContent = '';
+}
+
+function showMicError_(msg){
+  const el = document.getElementById('micErrorBanner');
+  if(!el) { toast(msg, 'error'); return; }
+  el.innerHTML = icon('alert',15) + '<span>'+escapeHtml(msg)+'</span> <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="startRecordingFlow_()">Retry</button>';
+  el.style.display = 'flex';
+}
+function hideMicError_(){
+  const el = document.getElementById('micErrorBanner');
+  if(el) el.style.display = 'none';
+}
+
+async function startRecordingFlow_(){
+  const recBtn = document.getElementById('recBtn');
+  if(mediaRecorder && mediaRecorder.state === 'recording') return true;
+  hideMicError_();
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showMicError_('This browser does not support microphone recording. Try Chrome or Edge.');
+    return false;
+  }
+  try{
+    const mediaPromise = navigator.mediaDevices.getUserMedia({audio:true});
+    const timeoutPromise = new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('TIMEOUT')); }, 8000); });
+    mediaStream = await Promise.race([mediaPromise, timeoutPromise]);
+  }catch(e){
+    if(e && e.message === 'TIMEOUT'){
+      showMicError_('The browser never responded to the microphone request. This page may be running inside a restricted frame. Try opening the deployed link directly in its own browser tab.');
+    } else if(e && e.name === 'NotAllowedError'){
+      showMicError_('Microphone access was blocked. If your browser did not show a permission prompt at all, this page is likely running inside a sandboxed frame that blocks microphone by policy, open the deployed link directly in its own tab instead of an embedded preview.');
+    } else if(e && e.name === 'NotFoundError'){
+      showMicError_('No microphone was found on this device.');
+    } else {
+      showMicError_('Microphone unavailable: ' + (e && e.message ? e.message : e));
+    }
+    return false;
+  }
+
+  const audioTracks = mediaStream.getAudioTracks();
+  if(!audioTracks.length || audioTracks[0].readyState !== 'live'){
+    showMicError_('The microphone stream was granted but no live audio track was returned, likely blocked by a browser permissions policy on this page. Try opening the deployed link directly in its own browser tab.');
+    mediaStream.getTracks().forEach(function(t){ t.stop(); });
+    return false;
+  }
+
+  audioChunks = [];
+  const mimeType = pickMimeType_();
+  try{
+    mediaRecorder = mimeType ? new MediaRecorder(mediaStream, {mimeType: mimeType}) : new MediaRecorder(mediaStream);
+  }catch(e){
+    showMicError_('Could not start the recorder on this browser: ' + (e && e.message ? e.message : e));
+    mediaStream.getTracks().forEach(function(t){ t.stop(); });
+    return false;
+  }
+  mediaRecorder.ondataavailable = function(e){ if(e.data.size>0) audioChunks.push(e.data); };
+  mediaRecorder.onstop = function(){
+    const blob = new Blob(audioChunks, {type: mediaRecorder.mimeType || 'audio/webm'});
+    call.recordedBlob = blob;
+    call.recordedURL = URL.createObjectURL(blob);
+    if(recBtn) recBtn.classList.remove('on');
+    renderTranscriptControls();
+  };
+  mediaRecorder.start();
+  startRecognition_();
+  if(recBtn) recBtn.classList.add('on');
+  renderTranscriptControls();
+  return true;
+}
+
+function stopRecordingFlow_(){
+  if(mediaRecorder && mediaRecorder.state === 'recording'){
+    mediaRecorder.stop();
+    mediaStream.getTracks().forEach(function(t){ t.stop(); });
+  }
+  stopRecognition_();
+  const recBtn = document.getElementById('recBtn');
+  if(recBtn) recBtn.classList.remove('on');
+}
+
+async function toggleRecording(){
+  if(mediaRecorder && mediaRecorder.state === 'recording'){
+    stopRecordingFlow_();
+    toast('Recording paused.', 'default');
+  } else {
+    const ok = await startRecordingFlow_();
+    if(ok) toast('Recording resumed.', 'default');
+  }
+  renderTranscriptControls();
+}
+
+function endCall(){
+  clearInterval(timerInterval);
+  stopRecordingFlow_();
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  document.getElementById('phoneStatus').textContent = 'Call ended';
+  document.getElementById('callWave').classList.remove('live');
+  document.getElementById('inCallControls').style.display = 'none';
+
+  const wrap = document.getElementById('checklistWrap');
+  wrap.innerHTML = call.scenario.checklist.map(function(item,i){
+    return '<label class="checklist-item"><input type="checkbox" id="chk-'+i+'"><span>'+escapeHtml(item)+'</span></label>';
+  }).join('');
+
+  const reviewBox = document.getElementById('recordingReview');
+  if(call.recordedURL){ reviewBox.style.display = 'block'; document.getElementById('playbackAudio').src = call.recordedURL; }
+  else { reviewBox.style.display = 'none'; }
+
+  const transcriptBox = document.getElementById('transcriptReview');
+  if(call.speechTranscript){
+    transcriptBox.style.display = 'block';
+    document.getElementById('transcriptReviewText').textContent = call.speechTranscript;
+  } else {
+    transcriptBox.style.display = 'none';
+  }
+
+  document.getElementById('callNotes').value = '';
+  document.getElementById('wrapupCard').style.display = 'block';
+  document.getElementById('wrapupCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function retryWholeCall(){ const id = call.scenario.id; openCall(id); toast('Fresh attempt started. Previous recording discarded.', 'default'); }
+function discardCall(){ exitCall(); toast('Attempt discarded.', 'default'); }
+function exitCall(){
+  clearInterval(timerInterval);
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  if(mediaRecorder && mediaRecorder.state==='recording'){ mediaRecorder.stop(); mediaStream.getTracks().forEach(function(t){ t.stop(); }); }
+  stopRecognition_();
+  call = null;
+  showView('trainee-home');
+}
+
+function blobToBase64(blob){
+  return new Promise(function(resolve, reject){
+    const reader = new FileReader();
+    reader.onloadend = function(){ resolve(reader.result); };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function submitForReview(){
+  const checklistResults = call.scenario.checklist.map(function(item,i){
+    return { item:item, done: document.getElementById('chk-'+i).checked };
+  });
+  const notes = document.getElementById('callNotes').value.trim();
+
+  if(!call.recordedBlob){
+    if(!confirm('You don\'t have a recording for this attempt. Submit anyway without audio?')) return;
+  }
+
+  const submitBtn = document.getElementById('submitReviewBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Uploading…';
+
+  try{
+    let audioBase64 = null, audioMime = null;
+    if(call.recordedBlob){
+      audioBase64 = await blobToBase64(call.recordedBlob);
+      audioMime = call.recordedBlob.type;
+    }
+    const payload = {
+      username: currentUser.Username,
+      agentName: currentUser.Name,
+      scenarioId: call.scenario.id,
+      scenarioTitle: call.scenario.title,
+      category: call.scenario.category,
+      direction: call.scenario.direction,
+      practiceMode: call.mode === 'Freestyle' ? 'Impromptu' : call.mode,
+      hideLinesUsed: !!call.hideLinesEverOn,
+      transcript: call.speechTranscript || '',
+      duration: call.seconds,
+      checklist: checklistResults,
+      notes: notes,
+      audioBase64: audioBase64,
+      audioMime: audioMime
+    };
+    await gsRun('submitCall', payload);
+    toast('Call submitted to your reviewer.', 'success');
+    state.submissions = await gsRun('getSubmissions');
+    exitCall();
+    showView('trainee-progress');
+  }catch(err){
+    toast('Submission failed: ' + (err && err.message ? err.message : err), 'error');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Send to Reviewer ' + icon('chevronRight',14);
+  }
+}
+
+/* ============================================================
+   AGENT PROGRESS
+   ============================================================ */
+function renderTraineeProgress(){
+  const mine = state.submissions.filter(function(s){ return s.username === currentUser.Username; });
+  const approved = mine.filter(function(s){ return s.status==='approved'; }).length;
+  const pending = mine.filter(function(s){ return s.status==='pending'; }).length;
+  const retry = mine.filter(function(s){ return s.status==='retry'; }).length;
+
+  document.getElementById('progressStats').innerHTML =
+    '<div class="card stat-card"><div class="stat-num">'+mine.length+'</div><div class="stat-label">Calls submitted</div></div>'+
+    '<div class="card stat-card"><div class="stat-num" style="color:var(--amber);">'+pending+'</div><div class="stat-label">Awaiting review</div></div>'+
+    '<div class="card stat-card"><div class="stat-num" style="color:var(--green);">'+approved+'</div><div class="stat-label">Approved</div></div>'+
+    '<div class="card stat-card"><div class="stat-num" style="color:var(--red);">'+retry+'</div><div class="stat-label">Sent back</div></div>';
+
+  const pct = Math.min(100, Math.round((approved/8)*100));
+  document.getElementById('competencyFill').style.width = pct+'%';
+
+  const list = document.getElementById('mySubmissionsList');
+  if(!mine.length){ list.innerHTML = emptyState('No submissions yet. Complete a call and send it to your reviewer.'); return; }
+  list.innerHTML = mine.map(function(s){
+    const modeClass = 'badge-mode-'+String(s.practiceMode||'').toLowerCase();
+    return '<div class="queue-item">'+
+      '<div><div class="who">'+escapeHtml(s.scenarioTitle)+'</div>'+
+      '<div class="meta">'+fmtDate(s.timestamp)+' · '+fmtDuration(s.duration)+(s.notes?' · has notes':'')+'</div>'+
+      '<div class="badges-row" style="margin-top:6px;">'+
+        (s.practiceMode ? '<span class="badge '+modeClass+'">'+escapeHtml(s.practiceMode)+'</span>' : '')+
+        (s.hideLinesUsed ? '<span class="badge badge-hidden">Lines hidden</span>' : '')+
+      '</div>'+
+      (s.status!=='pending' && s.feedback ? '<div style="margin-top:8px; font-size:12.5px; background:var(--bg); padding:9px 11px; border-radius:8px;"><b>Reviewer feedback:</b> '+escapeHtml(s.feedback)+'</div>' : '')+
+      '</div>'+
+      '<div style="display:flex; align-items:center; gap:9px;">'+
+      (s.score!==null?'<span class="badge badge-outbound">Score '+s.score+'/5</span>':'')+
+      '<span class="badge badge-'+s.status+'">'+statusLabel(s.status)+'</span></div></div>';
+  }).join('');
+}
+
+function statusLabel(s){ return {pending:'Pending review', approved:'Approved', retry:'Needs retry'}[s] || s; }
+function fmtDate(d){ const dt = new Date(d); return dt.toLocaleDateString(undefined,{month:'short', day:'numeric'}) + ' · ' + dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}); }
+function fmtDuration(sec){ const m = Math.floor(sec/60), s = sec%60; return m+':'+String(s).padStart(2,'0')+' min'; }
+
+/* ============================================================
+   REVIEWER — QUEUE (Approver + Admin)
+   ============================================================ */
+function showAdminTab(tab){
+  document.querySelectorAll('.tabs button[data-tab]').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+  document.querySelectorAll('.admin-tab').forEach(function(d){ d.style.display='none'; });
+  document.getElementById('admin-'+tab).style.display = 'block';
+}
+
+function setQueueFilter(f){
+  queueFilter = f;
+  document.querySelectorAll('#queueFilterTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.qf===f); });
+  renderQueue();
+}
+
+function renderQueue(){
+  const list = document.getElementById('queueList');
+  let items = state.submissions;
+  if(queueFilter !== 'all') items = items.filter(function(s){ return s.status===queueFilter; });
+  if(!items.length){ list.innerHTML = emptyState('No submissions in this view yet.', 'clipboard'); return; }
+  list.innerHTML = items.map(queueItemHTML).join('');
+}
+
+function queueItemHTML(s){
+  const expanded = expandedSubmissionId === s.id;
+  const modeClass = 'badge-mode-'+String(s.practiceMode||'').toLowerCase();
+  return '<div><div class="queue-item row-clickable" onclick="toggleExpand(\''+s.id+'\')">'+
+    '<div><div class="who">'+escapeHtml(s.agentName)+' <span style="color:var(--muted); font-weight:500;">· '+escapeHtml(s.scenarioTitle)+'</span></div>'+
+    '<div class="meta">'+fmtDate(s.timestamp)+' · '+fmtDuration(s.duration)+' · '+(s.direction==='outbound'?'Outbound':'Inbound')+(s.audioFileId?' · recording available':' · no recording')+'</div>'+
+    '<div class="badges-row" style="margin-top:6px;">'+
+      (s.practiceMode ? '<span class="badge '+modeClass+'">'+escapeHtml(s.practiceMode)+'</span>' : '')+
+      (s.hideLinesUsed ? '<span class="badge badge-hidden">Lines hidden</span>' : '')+
+    '</div></div>'+
+    '<span class="badge badge-'+s.status+'">'+statusLabel(s.status)+'</span></div>'+
+    (expanded ? reviewPanelHTML(s) : '')+'</div>';
+}
+
+function toggleExpand(id){
+  expandedSubmissionId = expandedSubmissionId === id ? null : id;
+  renderQueue();
+  if(expandedSubmissionId) loadAudioForSubmission(expandedSubmissionId);
+}
+
+function reviewPanelHTML(s){
+  const checklistHtml = s.checklist.map(function(c){
+    return '<div class="checklist-item"><span>'+(c.done?icon('check',14):icon('x',14))+'</span><span>'+escapeHtml(c.item)+' <span style="color:var(--muted-2); font-size:11px;">(self-reported)</span></span></div>';
+  }).join('');
+  const scores = [1,2,3,4,5];
+  return '<div class="review-panel">'+
+    (s.audioFileId ? '<audio id="audio-'+s.id+'" controls></audio><div id="audioLoad-'+s.id+'" style="font-size:11.5px; color:var(--muted); margin-top:6px;">Loading recording…</div>' : '<div class="hint-banner">'+icon('alert',16)+'<span>No recording was submitted for this attempt.</span></div>')+
+    (s.transcript ? '<label class="field-label" style="margin-top:14px;">Auto-transcribed speech</label><div class="transcript-block">'+escapeHtml(s.transcript)+'</div>' : '')+
+    (s.notes ? '<div style="margin-top:12px; font-size:13px;"><b>Analyst notes:</b> '+escapeHtml(s.notes)+'</div>' : '')+
+    '<label class="field-label" style="margin-top:16px;">Self-reported checklist</label>'+checklistHtml+
+    '<label class="field-label" style="margin-top:16px;">Score</label>'+
+    '<div class="score-row">'+scores.map(function(n){ return '<div class="score-pill '+(s.score===n?'selected':'')+'" onclick="setScore(\''+s.id+'\','+n+')">'+n+'</div>'; }).join('')+'</div>'+
+    '<label class="field-label" style="margin-top:16px;">Feedback for agent</label>'+
+    '<textarea id="feedback-'+s.id+'" rows="3" placeholder="What went well, what to improve next time...">'+escapeHtml(s.feedback||'')+'</textarea>'+
+    '<div style="display:flex; gap:10px; margin-top:16px;">'+
+    '<button class="btn btn-danger" onclick="reviewAction(\''+s.id+'\',\'retry\')">'+icon('refresh',14)+' Send Back for Retry</button>'+
+    '<button class="btn btn-green" style="margin-left:auto;" onclick="reviewAction(\''+s.id+'\',\'approved\')">'+icon('check',14)+' Approve</button>'+
+    '</div></div>';
+}
+
+let audioCache = {};
+async function loadAudioForSubmission(id){
+  const s = state.submissions.find(function(x){ return x.id===id; });
+  if(!s || !s.audioFileId) return;
+  const audioEl = document.getElementById('audio-'+id);
+  const loadEl = document.getElementById('audioLoad-'+id);
+  if(!audioEl) return;
+  if(audioCache[s.audioFileId]){ audioEl.src = audioCache[s.audioFileId]; if(loadEl) loadEl.style.display='none'; return; }
+  try{
+    const dataUrl = await gsRun('getAudioDataUrl', s.audioFileId);
+    audioCache[s.audioFileId] = dataUrl;
+    if(document.getElementById('audio-'+id)){ document.getElementById('audio-'+id).src = dataUrl; }
+    if(document.getElementById('audioLoad-'+id)){ document.getElementById('audioLoad-'+id).style.display = 'none'; }
+  }catch(e){ if(loadEl) loadEl.textContent = 'Could not load recording.'; }
+}
+
+function setScore(id, n){
+  const s = state.submissions.find(function(x){ return x.id===id; });
+  s.score = n;
+  expandedSubmissionId = id;
+  renderQueue();
+}
+
+async function reviewAction(id, status){
+  const s = state.submissions.find(function(x){ return x.id===id; });
+  const feedbackEl = document.getElementById('feedback-'+id);
+  const feedback = feedbackEl ? feedbackEl.value.trim() : (s.feedback||'');
+  try{
+    await gsRun('updateReview', id, { status:status, score:s.score, feedback:feedback });
+    s.status = status; s.feedback = feedback;
+    expandedSubmissionId = null;
+    renderQueue();
+    renderTraineesTable();
+    toast(status==='approved' ? 'Approved. Nice work by '+s.agentName+'.' : 'Sent back to '+s.agentName+' for another attempt.', status==='approved' ? 'success' : 'warn');
+  }catch(err){ toast('Could not save review: '+(err&&err.message?err.message:err), 'error'); }
+}
+
+/* ============================================================
+   REVIEWER — SCENARIO MANAGER (Admin only)
+   ============================================================ */
+function renderScriptsTable(){
+  if(!isAdmin(currentUser)) return;
+  const t = document.getElementById('scriptsTable');
+  if(!state.scenarios.length){ t.innerHTML = '<tr><td>'+emptyState('No scenarios yet.')+'</td></tr>'; return; }
+  t.innerHTML = '<tr><th>Scenario</th><th>Store</th><th>Category</th><th>Direction</th><th>Difficulty</th><th>Lines</th><th></th></tr>'+
+    state.scenarios.map(function(s){
+      return '<tr><td><b>'+escapeHtml(s.title)+'</b><div style="color:var(--muted); font-size:11.5px;">'+escapeHtml(s.goal)+'</div></td>'+
+        '<td>'+escapeHtml(s.storeName)+'<div style="color:var(--muted); font-size:11.5px;">'+escapeHtml(s.phone)+'</div></td>'+
+        '<td><span class="badge badge-category">'+escapeHtml(s.category||'General')+'</span></td>'+
+        '<td><span class="badge badge-'+s.direction+'">'+s.direction+'</span></td>'+
+        '<td><span class="badge badge-'+s.difficulty.toLowerCase()+'">'+s.difficulty+'</span></td>'+
+        '<td>'+s.script.length+' lines</td>'+
+        '<td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="openScriptEditor(\''+s.id+'\')">Edit</button> '+
+        '<button class="btn btn-ghost btn-sm" onclick="deleteScenarioUI(\''+s.id+'\')">Delete</button></td></tr>';
+    }).join('');
+}
+
+async function deleteScenarioUI(id){
+  if(!confirm('Delete this scenario? This cannot be undone.')) return;
+  try{
+    await gsRun('deleteScenario', id);
+    state.scenarios = await gsRun('getScenarios');
+    renderScriptsTable();
+    toast('Scenario deleted.', 'default');
+  }catch(err){ toast('Could not delete: '+(err&&err.message?err.message:err), 'error'); }
+}
+
+let editingScript = null;
+
+function openScriptEditor(id){
+  const existing = id ? state.scenarios.find(function(s){ return s.id===id; }) : null;
+  editingScript = existing ? JSON.parse(JSON.stringify(existing)) : {
+    id:null, title:'', category:'Invoice Confirmation', direction:'outbound', difficulty:'Beginner',
+    storeName:'', phone:'', goal:'', checklist:[''], script:[{speaker:'trainee', text:''}]
+  };
+  renderScriptModal();
+}
+
+function renderScriptModal(){
+  const root = document.getElementById('modal-root');
+  const e = editingScript;
+  root.innerHTML =
+    '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal">'+
+    '<div class="modal-head"><h3>'+(e.id ? 'Edit scenario' : 'New scenario')+'</h3><button class="close-x" onclick="closeModal()">'+icon('x',14)+'</button></div>'+
+    '<div class="modal-body">'+
+      '<label class="field-label">Scenario title</label>'+
+      '<input type="text" id="edit-title" value="'+escapeAttr(e.title)+'" style="margin-bottom:12px;" placeholder="e.g. Invoice Confirmation: Weekly Delivery">'+
+      '<label class="field-label">Category</label>'+
+      '<input type="text" id="edit-category" list="categoryList" value="'+escapeAttr(e.category)+'" style="margin-bottom:12px;">'+
+      '<datalist id="categoryList"><option value="Invoice Confirmation"><option value="Clarification Call"><option value="Dispute Resolution"></datalist>'+
+      '<div class="grid grid-2" style="margin-bottom:12px;">'+
+        '<div><label class="field-label">Store (Blooms The Chemist branch)</label><input type="text" id="edit-store" value="'+escapeAttr(e.storeName)+'"></div>'+
+        '<div><label class="field-label">Store phone</label><input type="text" id="edit-phone" value="'+escapeAttr(e.phone)+'"></div>'+
+      '</div>'+
+      '<div class="grid grid-2" style="margin-bottom:12px;">'+
+        '<div><label class="field-label">Direction</label><select id="edit-direction">'+
+          '<option value="outbound" '+(e.direction==='outbound'?'selected':'')+'>Outbound (agent calls store)</option>'+
+          '<option value="inbound" '+(e.direction==='inbound'?'selected':'')+'>Inbound (store calls agent)</option></select></div>'+
+        '<div><label class="field-label">Difficulty</label><select id="edit-difficulty">'+
+          ['Beginner','Intermediate','Advanced'].map(function(d){ return '<option '+(e.difficulty===d?'selected':'')+'>'+d+'</option>'; }).join('')+
+        '</select></div>'+
+      '</div>'+
+      '<label class="field-label">Goal / what the agent is trying to accomplish</label>'+
+      '<textarea id="edit-goal" rows="2" style="margin-bottom:16px;">'+escapeHtml(e.goal)+'</textarea>'+
+      '<label class="field-label">Call script: exactly what should be said</label>'+
+      '<div id="scriptLines"></div>'+
+      '<button class="add-line-btn" onclick="addScriptLine()">'+icon('plus',13)+' Add line</button>'+
+      '<label class="field-label" style="margin-top:18px;">Reviewer checklist</label>'+
+      '<div id="checklistLines"></div>'+
+      '<button class="add-line-btn" onclick="addChecklistLine()">'+icon('plus',13)+' Add checklist item</button>'+
+    '</div>'+
+    '<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveScenarioUI()">Save scenario</button></div>'+
+    '</div></div>';
+  renderScriptLines();
+  renderChecklistLines();
+}
+
+function renderScriptLines(){
+  document.getElementById('scriptLines').innerHTML = editingScript.script.map(function(line,i){
+    return '<div class="script-row-edit">'+
+      '<select onchange="editingScript.script['+i+'].speaker=this.value">'+
+        '<option value="trainee" '+(line.speaker==='trainee'?'selected':'')+'>Analyst</option>'+
+        '<option value="store" '+(line.speaker==='store'?'selected':'')+'>Store</option></select>'+
+      '<input type="text" value="'+escapeAttr(line.text)+'" placeholder="Use {name} to insert the agent\'s name" oninput="editingScript.script['+i+'].text=this.value">'+
+      '<button class="mini-x" onclick="removeScriptLine('+i+')">'+icon('x',14)+'</button></div>';
+  }).join('');
+}
+function addScriptLine(){ editingScript.script.push({speaker:'trainee', text:''}); renderScriptLines(); }
+function removeScriptLine(i){ editingScript.script.splice(i,1); renderScriptLines(); }
+
+function renderChecklistLines(){
+  document.getElementById('checklistLines').innerHTML = editingScript.checklist.map(function(item,i){
+    return '<div class="script-row-edit" style="grid-template-columns:1fr 32px;">'+
+      '<input type="text" value="'+escapeAttr(item)+'" oninput="editingScript.checklist['+i+']=this.value">'+
+      '<button class="mini-x" onclick="removeChecklistLine('+i+')">'+icon('x',14)+'</button></div>';
+  }).join('');
+}
+function addChecklistLine(){ editingScript.checklist.push(''); renderChecklistLines(); }
+function removeChecklistLine(i){ editingScript.checklist.splice(i,1); renderChecklistLines(); }
+
+function closeModal(){ document.getElementById('modal-root').innerHTML = ''; editingScript = null; editingUser = null; }
+
+async function saveScenarioUI(){
+  editingScript.title = document.getElementById('edit-title').value.trim();
+  editingScript.category = document.getElementById('edit-category').value.trim();
+  editingScript.storeName = document.getElementById('edit-store').value.trim();
+  editingScript.phone = document.getElementById('edit-phone').value.trim();
+  editingScript.direction = document.getElementById('edit-direction').value;
+  editingScript.difficulty = document.getElementById('edit-difficulty').value;
+  editingScript.goal = document.getElementById('edit-goal').value.trim();
+  editingScript.checklist = editingScript.checklist.filter(function(c){ return c.trim(); });
+  editingScript.script = editingScript.script.filter(function(l){ return l.text.trim(); });
+
+  if(!editingScript.title || !editingScript.storeName || !editingScript.script.length){
+    toast('Please add a title, store name, and at least one script line.', 'warn'); return;
+  }
+  try{
+    await gsRun('saveScenario', editingScript);
+    state.scenarios = await gsRun('getScenarios');
+    toast(editingScript.id ? 'Scenario updated.' : 'New scenario created.', 'success');
+    closeModal();
+    renderScriptsTable();
+  }catch(err){ toast('Could not save: '+(err&&err.message?err.message:err), 'error'); }
+}
+
+/* ============================================================
+   REVIEWER — USER MANAGER (Admin only, drives the Users sheet / RBAC)
+   ============================================================ */
+let usersCache = [];
+async function renderRosterTable(){
+  if(!isAdmin(currentUser)) return;
+  usersCache = await gsRun('getUsers');
+  const t = document.getElementById('rosterTable');
+  if(!usersCache.length){ t.innerHTML = '<tr><td>'+emptyState('No users yet. Click "Add User" to create the first account.', 'users')+'</td></tr>'; return; }
+  t.innerHTML = '<tr><th>Name</th><th>Username</th><th>Position</th><th>Team</th><th>Role</th><th></th></tr>'+
+    usersCache.map(function(u){
+      const roleClass = u.Role === 'Admin' ? 'badge-role-admin' : (u.Role === 'Approver' ? 'badge-role-approver' : 'badge-role-agent');
+      return '<tr><td><b>'+escapeHtml(u.Name)+'</b><div style="color:var(--muted); font-size:11.5px;">'+escapeHtml(u.Email||'')+'</div></td>'+
+        '<td>'+escapeHtml(u.Username)+'</td>'+
+        '<td>'+escapeHtml(u.Position||'—')+'</td>'+
+        '<td>'+escapeHtml(u.Team||'—')+'</td>'+
+        '<td><span class="badge '+roleClass+'">'+escapeHtml(u.Role||'User')+'</span></td>'+
+        '<td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="openUserEditor(\''+escapeAttr(u.Username)+'\')">Edit</button> '+
+        '<button class="btn btn-ghost btn-sm" onclick="deleteUserUI(\''+escapeAttr(u.Username)+'\')">Remove</button></td></tr>';
+    }).join('');
+}
+
+async function deleteUserUI(username){
+  if(username === currentUser.Username){ toast('You can\'t remove your own account while logged in.', 'warn'); return; }
+  if(!confirm('Remove this user? They will no longer be able to sign in.')) return;
+  await gsRun('deleteUser', username);
+  renderRosterTable();
+  toast('User removed.', 'default');
+}
+
+let editingUser = null;
+function openUserEditor(username){
+  const existing = username ? usersCache.find(function(u){ return u.Username===username; }) : null;
+  editingUser = existing ? Object.assign({}, existing) : { Username:'', Password:'', Name:'', Position:'', Email:'', Team:'', Role:'User', Image:'' };
+  editingUser.originalUsername = existing ? existing.Username : '';
+  const root = document.getElementById('modal-root');
+  root.innerHTML =
+    '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal" style="max-width:480px;">'+
+    '<div class="modal-head"><h3>'+(existing ? 'Edit user' : 'Add user')+'</h3><button class="close-x" onclick="closeModal()">'+icon('x',14)+'</button></div>'+
+    '<div class="modal-body">'+
+      '<div class="grid grid-2">'+
+        '<div><label class="field-label">Username</label><input type="text" id="u-username" value="'+escapeAttr(editingUser.Username)+'"></div>'+
+        '<div><label class="field-label">Password</label><input type="text" id="u-password" value="'+escapeAttr(editingUser.Password)+'"></div>'+
+      '</div>'+
+      '<label class="field-label" style="margin-top:12px;">Full name</label><input type="text" id="u-name" value="'+escapeAttr(editingUser.Name)+'">'+
+      '<div class="grid grid-2" style="margin-top:12px;">'+
+        '<div><label class="field-label">Position</label><input type="text" id="u-position" value="'+escapeAttr(editingUser.Position)+'"></div>'+
+        '<div><label class="field-label">Team</label><input type="text" id="u-team" value="'+escapeAttr(editingUser.Team)+'"></div>'+
+      '</div>'+
+      '<label class="field-label" style="margin-top:12px;">Email</label><input type="email" id="u-email" value="'+escapeAttr(editingUser.Email)+'">'+
+      '<div class="grid grid-2" style="margin-top:12px;">'+
+        '<div><label class="field-label">Role</label><select id="u-role">'+
+          ['User','Approver','Admin'].map(function(r){ return '<option '+(editingUser.Role===r?'selected':'')+'>'+r+'</option>'; }).join('')+
+        '</select></div>'+
+        '<div><label class="field-label">Profile image URL</label><input type="text" id="u-image" value="'+escapeAttr(editingUser.Image)+'"></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveUserUI()">Save user</button></div>'+
+    '</div></div>';
+}
+
+async function saveUserUI(){
+  const payload = {
+    originalUsername: editingUser.originalUsername || '',
+    Username: document.getElementById('u-username').value.trim(),
+    Password: document.getElementById('u-password').value,
+    Name: document.getElementById('u-name').value.trim(),
+    Position: document.getElementById('u-position').value.trim(),
+    Team: document.getElementById('u-team').value.trim(),
+    Email: document.getElementById('u-email').value.trim(),
+    Role: document.getElementById('u-role').value,
+    Image: document.getElementById('u-image').value.trim()
+  };
+  if(!payload.Username || !payload.Name || !payload.Password){
+    toast('Username, Name, and Password are required.', 'warn'); return;
+  }
+  try{
+    await gsRun('saveUser', payload);
+    closeModal();
+    await renderRosterTable();
+    toast(payload.originalUsername ? 'User updated.' : 'User added.', 'success');
+  }catch(err){ toast('Could not save user: '+(err&&err.message?err.message:err), 'error'); }
+}
+
+/* ============================================================
+   REVIEWER — AGENT PROGRESS
+   ============================================================ */
+function renderTraineesTable(){
+  const names = Array.from(new Set(state.submissions.map(function(s){ return s.username; })));
+  const t = document.getElementById('traineesTable');
+  if(!names.length){ t.innerHTML = '<tr><td>'+emptyState('No analyst activity yet. Submissions will appear here once analysts start practicing.')+'</td></tr>'; return; }
+  t.innerHTML = '<tr><th>Analyst</th><th>Attempts</th><th>Approved</th><th>Sent back</th><th>Pending</th><th>Avg score</th></tr>'+
+    names.map(function(uname){
+      const subs = state.submissions.filter(function(s){ return s.username===uname; });
+      const displayName = subs[0] ? subs[0].agentName : uname;
+      const approved = subs.filter(function(s){ return s.status==='approved'; }).length;
+      const retry = subs.filter(function(s){ return s.status==='retry'; }).length;
+      const pending = subs.filter(function(s){ return s.status==='pending'; }).length;
+      const scored = subs.filter(function(s){ return s.score!==null; });
+      const avg = scored.length ? (scored.reduce(function(a,s){ return a+s.score; },0)/scored.length).toFixed(1) : '—';
+      return '<tr><td><b>'+escapeHtml(displayName)+'</b></td><td>'+subs.length+'</td>'+
+        '<td><span class="badge badge-approved">'+approved+'</span></td>'+
+        '<td><span class="badge badge-retry">'+retry+'</span></td>'+
+        '<td><span class="badge badge-pending">'+pending+'</span></td><td>'+avg+'</td></tr>';
+    }).join('');
+}
+
+/* ============================================================
+   REVIEWER — SETTINGS (Admin only)
+   ============================================================ */
+function renderSettingsForm(){
+  if(!isAdmin(currentUser)) return;
+  document.getElementById('set-appName').value = settings.APP_NAME || '';
+  document.getElementById('set-teamName').value = settings.TEAM_NAME || '';
+  document.getElementById('set-companyName').value = settings.COMPANY_NAME || '';
+  document.getElementById('set-logoUrl').value = settings.LOGO_URL || '';
+  document.getElementById('set-primaryColor').value = settings.PRIMARY_COLOR || '';
+  document.getElementById('set-accentColor').value = settings.ACCENT_COLOR || '';
+}
+
+async function saveBrandingSettings(){
+  const updated = {
+    APP_NAME: document.getElementById('set-appName').value.trim(),
+    TEAM_NAME: document.getElementById('set-teamName').value.trim(),
+    COMPANY_NAME: document.getElementById('set-companyName').value.trim(),
+    LOGO_URL: document.getElementById('set-logoUrl').value.trim(),
+    PRIMARY_COLOR: document.getElementById('set-primaryColor').value.trim(),
+    ACCENT_COLOR: document.getElementById('set-accentColor').value.trim()
+  };
+  try{
+    settings = await gsRun('saveSettings', updated);
+    applyBranding(settings);
+    toast('Settings saved.', 'success');
+  }catch(err){ toast('Could not save settings: '+(err&&err.message?err.message:err), 'error'); }
+}
+
+init();
+</script>
+
+</body>
+</html>
