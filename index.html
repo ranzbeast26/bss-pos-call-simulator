@@ -165,6 +165,13 @@
   .mode-pill{border:1.5px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#D7E3F1; border-radius:8px; padding:8px 4px; font-size:11px; font-weight:700; text-align:center;}
   .mode-pill.selected{background:var(--accent); border-color:var(--accent); color:#fff;}
   .mode-pill.locked{opacity:.35; cursor:not-allowed;}
+  .dialpad-display{background:rgba(0,0,0,.2); border-radius:10px; padding:12px; text-align:center; font-size:19px; font-weight:700; letter-spacing:2px; color:#fff; min-height:46px; margin-bottom:12px; font-variant-numeric:tabular-nums; word-break:break-all;}
+  .dialpad-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .dialpad-key{background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:9px 0; text-align:center; color:#fff; cursor:pointer; transition:.12s;}
+  .dialpad-key:hover{background:rgba(255,255,255,.15);}
+  .dialpad-key:active{transform:scale(.95);}
+  .dialpad-key b{display:block; font-size:16px; font-weight:700;}
+  .dialpad-key span{display:block; font-size:8px; color:#A9BCD3; letter-spacing:.05em; margin-top:1px;}
   .wave{display:flex; align-items:flex-end; justify-content:center; gap:3px; height:24px; margin:12px 0;}
   .wave span{width:3px; background:var(--accent); border-radius:2px; height:6px; opacity:.35;}
   .wave.live span{animation:wv 1s infinite ease-in-out; opacity:1;}
@@ -209,7 +216,16 @@
   .bubble.blurred{filter:blur(5px); user-select:none;}
   .bubble-tag{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted-2); margin-bottom:5px;}
 
-  .transcript-controls{padding:14px 18px; border-top:1px solid var(--border); display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .transcript-controls{padding:14px 18px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:10px; align-items:stretch; flex-wrap:wrap;}
+  .call-steps{display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:2px;}
+  .step-pip{display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--muted-2); text-transform:uppercase; letter-spacing:.03em; min-width:64px;}
+  .step-pip .dot{width:10px; height:10px; border-radius:50%; background:var(--border); display:block;}
+  .step-pip.current{color:var(--primary);}
+  .step-pip.current .dot{background:var(--accent); box-shadow:0 0 0 4px var(--accent-tint);}
+  .step-pip.done{color:var(--green);}
+  .step-pip.done .dot{background:var(--green);}
+  .step-line{flex:1; height:2px; background:var(--border); max-width:40px; margin-top:-16px;}
+  .big-step-btn{padding:16px; font-size:14.5px; gap:10px;}
   .rec-indicator{display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--red);}
   .rec-dot{width:8px; height:8px; border-radius:50%; background:var(--red); animation:blink 1s infinite;}
   @keyframes blink{50%{opacity:.25;}}
@@ -285,6 +301,17 @@
     main{padding:18px 14px 60px;}
   }
   .settings-form label.field-label{margin-top:14px;}
+  .streak-calendar{display:grid; grid-template-columns:repeat(14, 1fr); gap:4px; margin-top:12px;}
+  .streak-day{aspect-ratio:1; border-radius:4px; background:var(--bg); border:1px solid var(--border);}
+  .streak-day.active{background:var(--accent); border-color:var(--accent-dark);}
+  .streak-num{font-size:26px; font-weight:800; color:var(--primary);}
+  .kpi-mini{display:flex; align-items:center; gap:10px; padding:14px; border-radius:10px; background:var(--bg);}
+  .kpi-mini .num{font-size:20px; font-weight:800; color:var(--primary);}
+  .kpi-mini .label{font-size:10.5px; color:var(--muted); font-weight:700; text-transform:uppercase;}
+  .filter-bar{display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:16px;}
+  .filter-bar .field{min-width:150px; flex:1;}
+  .submission-card{padding:18px; margin-bottom:12px;}
+  .submission-card .sc-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;}
 </style>
 </head>
 <body>
@@ -366,6 +393,14 @@
             <label class="field-label" style="color:#A9BCD3;">Practice mode</label>
             <div class="mode-pills" id="modePills"></div>
           </div>
+          <div id="dialPadWrap" style="display:none;">
+            <div class="dialpad-display" id="dialpadDisplay">&nbsp;</div>
+            <div class="dialpad-grid" id="dialpadGrid"></div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button type="button" class="icon-btn" id="dialpadBackspace" style="background:rgba(255,255,255,.08); color:#fff; width:44px; height:44px;" onclick="dialpadBackspace()"></button>
+              <button type="button" class="btn btn-green btn-block" id="dialpadCallBtn" onclick="dialpadCall()" style="border-radius:12px; padding:13px;"></button>
+            </div>
+          </div>
           <button class="btn btn-primary btn-block" id="dialBtn" onclick="beginCall()"></button>
         </div>
 
@@ -414,35 +449,68 @@
         <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
           <button class="btn btn-outline" id="retryCallBtn" onclick="retryWholeCall()"></button>
           <button class="btn btn-ghost" id="discardCallBtn" onclick="discardCall()"></button>
-          <button class="btn btn-primary" id="submitReviewBtn" style="margin-left:auto;" onclick="submitForReview()"></button>
+          <button class="btn btn-primary" id="submitReviewBtn" style="margin-left:auto;" onclick="openSubmitConfirmation()"></button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===================== AGENT: PROGRESS ===================== -->
+  <!-- ===================== ANALYST: MY PROGRESS ===================== -->
   <section class="view" id="view-trainee-progress">
     <div class="page-head">
       <div class="eyebrow">Your progress</div>
-      <h1>Training dashboard</h1>
-      <p>Track your attempts, submissions, and reviewer feedback.</p>
+      <h1>My training dashboard</h1>
+      <p>Track your attempts, streaks, scores, and reviewer feedback over time.</p>
     </div>
     <div class="grid grid-4" id="progressStats"></div>
+
+    <div class="grid grid-2" style="margin-top:18px; align-items:start;">
+      <div class="card pad">
+        <h4 style="font-size:13px; color:var(--primary); text-transform:uppercase; letter-spacing:.03em; margin-bottom:14px;">Practice streak</h4>
+        <div id="streakSummary"></div>
+        <div id="streakCalendar" class="streak-calendar"></div>
+      </div>
+      <div class="card pad">
+        <h4 style="font-size:13px; color:var(--primary); text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px;">Score history</h4>
+        <p style="font-size:11.5px; color:var(--muted); margin-bottom:10px;">Reviewer scores across your last approved/reviewed attempts.</p>
+        <div id="scoreChart"></div>
+      </div>
+    </div>
+
     <div class="card competency-card" style="margin-top:18px;">
       <h4 style="font-size:13.5px; color:var(--primary); text-transform:uppercase; letter-spacing:.03em;">Competency level</h4>
       <div class="competency-bar"><div class="competency-fill" id="competencyFill" style="width:0%;"></div></div>
       <div class="competency-levels"><span>Foundational</span><span>Proficient</span><span>Advanced</span></div>
     </div>
+
     <div class="section-title"><h3>Your submissions</h3><div class="line"></div></div>
-    <div class="card" id="mySubmissionsList"></div>
+    <div class="card pad" style="margin-bottom:14px;">
+      <div class="grid grid-3">
+        <input type="text" id="progressSearch" placeholder="Search by scenario or category…" oninput="renderTraineeProgress()">
+        <select id="progressStatusFilter" onchange="renderTraineeProgress()">
+          <option value="">All statuses</option>
+          <option value="pending">Pending review</option>
+          <option value="approved">Approved</option>
+          <option value="retry">Needs retry</option>
+        </select>
+        <select id="progressModeFilter" onchange="renderTraineeProgress()">
+          <option value="">All practice modes</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+          <option value="Impromptu">Impromptu</option>
+        </select>
+      </div>
+    </div>
+    <div id="mySubmissionsList"></div>
   </section>
 
   <!-- ===================== REVIEWER ===================== -->
   <section class="view" id="view-admin">
     <div class="page-head">
-      <div class="eyebrow">Reviewer workspace</div>
-      <h1>Quality assurance &amp; program administration</h1>
-      <p>Review recordings, control exactly what agents see, manage users, and track team progress.</p>
+      <div class="eyebrow">Quality management</div>
+      <h1>Dashboard</h1>
+      <p>Review recordings, track team and analyst performance, and manage what analysts see.</p>
     </div>
     <div class="tabs" id="adminTabs">
       <button class="active" data-tab="queue" onclick="showAdminTab('queue')"></button>
@@ -453,6 +521,10 @@
     </div>
 
     <div id="admin-queue" class="admin-tab">
+      <div class="grid grid-4" id="dashboardKPIs" style="margin-bottom:18px;"></div>
+      <div class="card pad" style="margin-bottom:16px;">
+        <div class="filter-bar" id="dashboardFilterBar"></div>
+      </div>
       <div class="subtabs" id="queueFilterTabs"></div>
       <div class="card" id="queueList"></div>
     </div>
@@ -550,7 +622,7 @@ function icon(name, size){ size = size || 16; return '<svg width="'+size+'" heig
  *
  * To enable the external-hosting path, paste your deployed /exec URL below.
  */
-const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbwOAdcNHEoR-FLXk1Gky3YYXx9nJIVZSyuxoEOYTrzCVJcuqD2jjsJ5BUb1UsyC6Zqe/exec';
+const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbydagodmHrP3GFk52zAEfMGtgrLkRQWcOVU-3pbGIbigGEwxHh8ZR9J8lIQVpJE2EHU/exec';
 
 function usingAppsScriptBridge_(){
   return (typeof google !== 'undefined' && !!google.script && !!google.script.run);
@@ -598,13 +670,30 @@ function gsRun(fnName){
    ============================================================ */
 let settings = {};
 let currentUser = null;
+let sessionToken = null;
 let state = { scenarios:[], submissions:[] };
+let teamApprovers = [];
+let pendingSubmission = null;
+let dashboardFilters = {};
+let allUsersCache = null;
 let call = null;
 let mediaStream = null, mediaRecorder = null, audioChunks = [];
 let timerInterval = null;
 let hideLines = false;
 let queueFilter = 'all';
 let expandedSubmissionId = null;
+
+/** Calls a token-gated backend function, automatically inserting the current session token. */
+function authedRun(fnName){
+  const args = Array.prototype.slice.call(arguments, 1);
+  return gsRun.apply(null, [fnName, sessionToken].concat(args)).catch(function(err){
+    if(err && /session has expired|not signed in/i.test(err.message || '')){
+      toast('Your session expired. Please sign in again.', 'warn');
+      logout();
+    }
+    throw err;
+  });
+}
 
 function isApproverOrAdmin(u){ return !!u && (u.Role === 'Approver' || u.Role === 'Admin'); }
 function isAdmin(u){ return !!u && u.Role === 'Admin'; }
@@ -711,7 +800,9 @@ async function doLogin(){
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = 'Signing in…';
   try{
-    currentUser = await gsRun('login', username, password);
+    const result = await gsRun('login', username, password);
+    sessionToken = result.token;
+    currentUser = result;
     btn.disabled = false; btn.innerHTML = 'Sign In';
     document.getElementById('loginUsername').value = '';
     document.getElementById('loginPassword').value = '';
@@ -724,9 +815,12 @@ async function doLogin(){
 }
 
 async function afterLogin(){
-  const [scenarios, submissions] = await Promise.all([gsRun('getScenarios'), gsRun('getSubmissions')]);
+  const [scenarios, submissions, approvers] = await Promise.all([
+    authedRun('getScenarios'), authedRun('getSubmissions', {}), authedRun('getTeamApprovers')
+  ]);
   state.scenarios = scenarios;
   state.submissions = submissions;
+  teamApprovers = approvers;
   renderTopnav();
   renderUserChip();
   document.getElementById('topRight').style.display = 'flex';
@@ -752,7 +846,9 @@ function confirmLogout(){
   logout();
 }
 function logout(){
+  if(sessionToken){ gsRun('logout', sessionToken).catch(function(){}); }
   currentUser = null;
+  sessionToken = null;
   document.getElementById('topRight').style.display = 'none';
   document.getElementById('topnav').innerHTML = '';
   document.getElementById('subnavBar').style.display = 'none';
@@ -792,12 +888,85 @@ function showView(name){
   if(name==='trainee-progress') renderTraineeProgress();
   if(name==='admin'){
     renderAdminTabsVisibility();
-    renderQueue(); renderScriptsTable(); renderRosterTable(); renderTraineesTable(); renderSettingsForm();
+    initDashboard();
   }
 }
 
+async function initDashboard(){
+  if(isAdmin(currentUser) && !allUsersCache){
+    try{ allUsersCache = await authedRun('getUsers'); }catch(e){ allUsersCache = []; }
+  }
+  renderDashboardFilterBar();
+  renderDashboardKPIs();
+  renderQueue(); renderScriptsTable(); renderRosterTable(); renderTraineesTable(); renderSettingsForm();
+}
+
+function renderDashboardFilterBar(){
+  const bar = document.getElementById('dashboardFilterBar');
+  const scenarioOptions = state.scenarios.map(function(s){ return '<option value="'+s.id+'">'+escapeHtml(s.title)+'</option>'; }).join('');
+  const analystUsernames = Array.from(new Set(state.submissions.map(function(s){ return s.username; })));
+  const analystOptions = analystUsernames.map(function(u){
+    const disp = (state.submissions.find(function(s){ return s.username===u; })||{}).agentName || u;
+    return '<option value="'+escapeAttr(u)+'">'+escapeHtml(disp)+'</option>';
+  }).join('');
+
+  let adminOnlyHtml = '';
+  if(isAdmin(currentUser) && allUsersCache){
+    const teams = Array.from(new Set(allUsersCache.map(function(u){ return u.Team; }).filter(Boolean)));
+    const approverUsers = allUsersCache.filter(function(u){ return u.Role==='Approver'; });
+    adminOnlyHtml =
+      '<div class="field"><label class="field-label">Team</label><select onchange="setDashboardFilter(\'team\', this.value)"><option value="">All teams</option>'+
+        teams.map(function(t){ return '<option value="'+escapeAttr(t)+'">'+escapeHtml(t)+'</option>'; }).join('')+
+      '</select></div>'+
+      '<div class="field"><label class="field-label">Approver</label><select onchange="setDashboardFilter(\'approver\', this.value)"><option value="">All approvers</option>'+
+        approverUsers.map(function(u){ return '<option value="'+escapeAttr(u.Username)+'">'+escapeHtml(u.Name)+'</option>'; }).join('')+
+      '</select></div>';
+  }
+
+  bar.innerHTML =
+    '<div class="field"><label class="field-label">Status</label><select onchange="setDashboardFilter(\'status\', this.value)"><option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="retry">Sent back</option></select></div>'+
+    '<div class="field"><label class="field-label">Visibility</label><select onchange="setDashboardFilter(\'visibility\', this.value)"><option value="">Public + Private</option><option value="Public">Public</option><option value="Private">Private</option></select></div>'+
+    '<div class="field"><label class="field-label">Scenario</label><select onchange="setDashboardFilter(\'scenarioId\', this.value)"><option value="">All scenarios</option>'+scenarioOptions+'</select></div>'+
+    '<div class="field"><label class="field-label">Analyst</label><select onchange="setDashboardFilter(\'username\', this.value)"><option value="">All analysts</option>'+analystOptions+'</select></div>'+
+    adminOnlyHtml+
+    '<div class="field" style="max-width:150px;"><label class="field-label">From</label><input type="date" onchange="setDashboardFilter(\'dateFrom\', this.value)"></div>'+
+    '<div class="field" style="max-width:150px;"><label class="field-label">To</label><input type="date" onchange="setDashboardFilter(\'dateTo\', this.value)"></div>'+
+    '<button class="btn btn-ghost btn-sm" onclick="resetDashboardFilters()">Clear</button>';
+}
+
+async function setDashboardFilter(key, value){
+  if(value) dashboardFilters[key] = value; else delete dashboardFilters[key];
+  await refreshDashboardData();
+}
+async function resetDashboardFilters(){
+  dashboardFilters = {};
+  renderDashboardFilterBar();
+  await refreshDashboardData();
+}
+async function refreshDashboardData(){
+  try{
+    state.submissions = await authedRun('getSubmissions', dashboardFilters);
+    renderDashboardKPIs();
+    renderQueue();
+    renderTraineesTable();
+  }catch(err){ toast('Could not load dashboard data: '+(err&&err.message?err.message:err), 'error'); }
+}
+
+function renderDashboardKPIs(){
+  const subs = state.submissions;
+  const pending = subs.filter(function(s){ return s.status==='pending'; }).length;
+  const approved = subs.filter(function(s){ return s.status==='approved'; }).length;
+  const total = subs.length;
+  const completionRate = total ? Math.round(((approved + subs.filter(function(s){ return s.status==='retry'; }).length) / total) * 100) : 0;
+  document.getElementById('dashboardKPIs').innerHTML =
+    '<div class="card stat-card"><div class="stat-num">'+total+'</div><div class="stat-label">Total submissions</div></div>'+
+    '<div class="card stat-card"><div class="stat-num" style="color:var(--amber);">'+pending+'</div><div class="stat-label">Pending review</div></div>'+
+    '<div class="card stat-card"><div class="stat-num" style="color:var(--green);">'+approved+'</div><div class="stat-label">Completed review</div></div>'+
+    '<div class="card stat-card"><div class="stat-num" style="color:var(--primary);">'+completionRate+'%</div><div class="stat-label">Completion rate</div></div>';
+}
+
 function renderAdminTabsVisibility(){
-  const adminOnly = ['scripts','roster','settings'];
+  const adminOnly = ['roster','settings'];
   document.querySelectorAll('#adminTabs button').forEach(function(b){
     if(adminOnly.indexOf(b.dataset.tab) > -1){
       b.style.display = isAdmin(currentUser) ? 'flex' : 'none';
@@ -849,6 +1018,7 @@ function openCall(scenarioId){
   const scenario = state.scenarios.find(function(s){ return s.id===scenarioId; });
   call = { scenario:scenario, stepIndex:0, seconds:0, recordedURL:null, recordedBlob:null, muted:false, speaker:false, connected:false, mode:'Easy', hideLinesEverOn:false, speechTranscript:'' };
   hideLines = false;
+  traineeLineArmed = false;
   document.getElementById('hideSwitch').classList.remove('on');
   renderModePills();
   applyModeDefaults('Easy');
@@ -863,20 +1033,66 @@ function openCall(scenarioId){
   document.getElementById('phoneBrandLabel').innerHTML = icon('phone',12) + ' Simulated Softphone';
   document.getElementById('callWave').classList.remove('live');
   document.getElementById('transcript').innerHTML = '';
-  document.getElementById('transcriptControls').innerHTML = '<p style="color:var(--muted); font-size:12.5px;">Press "Start Call" on the left to begin the simulation.</p>';
+  document.getElementById('transcriptControls').innerHTML = '<p style="color:var(--muted); font-size:12.5px;">Dial a number and press Call to begin the simulation.</p>';
   document.getElementById('wrapupCard').style.display = 'none';
   document.getElementById('preCallActions').style.display = 'block';
   document.getElementById('inCallControls').style.display = 'none';
   document.getElementById('acceptDeclineWrap').style.display = 'none';
+  dialedNumber = '';
+  renderDialpadDisplay();
 
   if(scenario.direction === 'outbound'){
     document.getElementById('phoneStatus').textContent = 'Ready to dial';
-    document.getElementById('dialBtn').innerHTML = icon('phoneOut',15) + ' Start Call';
+    document.getElementById('dialPadWrap').style.display = 'block';
+    document.getElementById('dialBtn').style.display = 'none';
+    renderDialpadGrid();
   } else {
     document.getElementById('phoneStatus').textContent = 'Ready to simulate';
+    document.getElementById('dialPadWrap').style.display = 'none';
+    document.getElementById('dialBtn').style.display = 'flex';
     document.getElementById('dialBtn').innerHTML = icon('phoneIn',15) + ' Simulate Incoming Call';
   }
   showView('call');
+}
+
+const DIALPAD_KEYS = [
+  ['1',''],['2','ABC'],['3','DEF'],
+  ['4','GHI'],['5','JKL'],['6','MNO'],
+  ['7','PQRS'],['8','TUV'],['9','WXYZ'],
+  ['*',''],['0','+'],['#','']
+];
+let dialedNumber = '';
+
+function renderDialpadGrid(){
+  document.getElementById('dialpadGrid').innerHTML = DIALPAD_KEYS.map(function(k){
+    return '<div class="dialpad-key" onclick="dialpadPress(\''+k[0]+'\')"><b>'+k[0]+'</b><span>'+k[1]+'</span></div>';
+  }).join('');
+  document.getElementById('dialpadBackspace').innerHTML = icon('arrowLeft',16);
+  document.getElementById('dialpadCallBtn').innerHTML = icon('phoneOut',15) + ' Call';
+}
+function dialpadPress(digit){
+  if(dialedNumber.replace(/\D/g,'').length >= 15) return;
+  dialedNumber += digit;
+  renderDialpadDisplay();
+}
+function dialpadBackspace(){
+  dialedNumber = dialedNumber.slice(0, -1);
+  renderDialpadDisplay();
+}
+function renderDialpadDisplay(){
+  const el = document.getElementById('dialpadDisplay');
+  if(!el) return;
+  el.textContent = dialedNumber || 'Enter a number';
+}
+/**
+ * The dialed digits are cosmetic only, purely for immersion. They are never
+ * sent to the server, never validated, and never affect which scenario or
+ * script plays, that is entirely determined by the scenario card the
+ * analyst selected before reaching this screen.
+ */
+function dialpadCall(){
+  document.getElementById('dialPadWrap').style.display = 'none';
+  beginCall();
 }
 
 function renderModePills(){
@@ -994,7 +1210,7 @@ function addBubble(speaker, text){
 function advanceScript(){
   if(call.stepIndex >= call.scenario.script.length){ finishScript(); return; }
   const line = currentScriptLine();
-  const text = line.text.replace('{name}', currentUser.Name || 'your trainer');
+  const text = line.text.replace('{name}', currentUser.Username || 'your trainer');
   addBubble(line.speaker, text);
   if(line.speaker === 'store') speak(text);
   call.stepIndex++;
@@ -1009,17 +1225,38 @@ function renderTranscriptControls(){
   const c = document.getElementById('transcriptControls');
   const isRecording = mediaRecorder && mediaRecorder.state === 'recording';
   const recHtml = isRecording ? '<div class="rec-indicator"><div class="rec-dot"></div> Recording</div>' : '';
+
   if(call.stepIndex >= call.scenario.script.length){
-    c.innerHTML = recHtml + '<p style="color:var(--green); font-weight:700; font-size:13px; margin-left:auto;">'+icon('check',14)+' Script complete.</p>';
+    c.innerHTML = '<div class="call-steps">'+stepPipsHTML('done')+'</div>'+recHtml+
+      '<p style="color:var(--green); font-weight:700; font-size:13px; margin-left:auto;">'+icon('check',14)+' Script complete.</p>';
     return;
   }
   const next = currentScriptLine();
   if(next.speaker === 'store'){
-    c.innerHTML = recHtml + '<button class="btn btn-navy" onclick="advanceScript()">'+icon('chevronRight',14)+' Play store\'s response</button>';
+    c.innerHTML = '<div class="call-steps">'+stepPipsHTML('listen')+'</div>'+recHtml+
+      '<button class="btn btn-navy btn-block big-step-btn" onclick="advanceScript()">'+icon('volume',18)+'<span>Tap to listen: the store is about to speak</span></button>';
+  } else if(traineeLineArmed){
+    c.innerHTML = '<div class="call-steps">'+stepPipsHTML('speak')+'</div>'+recHtml+
+      '<button class="btn btn-green btn-block big-step-btn" onclick="finishSpeakingLine()">'+icon('check',20)+'<span>Finished speaking, tap to continue</span></button>';
   } else {
-    c.innerHTML = recHtml + '<button class="btn btn-primary" onclick="advanceScript()">'+icon('check',14)+' I said my line, continue</button>';
+    c.innerHTML = '<div class="call-steps">'+stepPipsHTML('ready')+'</div>'+recHtml+
+      '<button class="btn btn-primary btn-block big-step-btn" onclick="armSpeakingLine()">'+icon('mic',20)+'<span>Your turn, tap when ready to speak</span></button>';
   }
 }
+
+function stepPipsHTML(stage){
+  const steps = [['listen','Listen'],['speak','Speak'],['continue','Continue']];
+  const order = { listen:0, ready:1, speak:1, continue:2, done:2 };
+  const currentIdx = order[stage] !== undefined ? order[stage] : 0;
+  return steps.map(function(s,i){
+    const state = i < currentIdx ? 'done' : (i === currentIdx ? 'current' : '');
+    return '<div class="step-pip '+state+'"><span class="dot"></span>'+s[1]+'</div>';
+  }).join('<div class="step-line"></div>');
+}
+
+let traineeLineArmed = false;
+function armSpeakingLine(){ traineeLineArmed = true; renderTranscriptControls(); }
+function finishSpeakingLine(){ traineeLineArmed = false; advanceScript(); }
 
 function pickMimeType_(){
   const candidates = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
@@ -1211,19 +1448,69 @@ function blobToBase64(blob){
   });
 }
 
-async function submitForReview(){
+function openSubmitConfirmation(){
   const checklistResults = call.scenario.checklist.map(function(item,i){
     return { item:item, done: document.getElementById('chk-'+i).checked };
   });
   const notes = document.getElementById('callNotes').value.trim();
 
   if(!call.recordedBlob){
-    if(!confirm('You don\'t have a recording for this attempt. Submit anyway without audio?')) return;
+    if(!confirm('You don\'t have a recording for this attempt. Continue to submit without audio?')) return;
   }
 
-  const submitBtn = document.getElementById('submitReviewBtn');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Uploading…';
+  pendingSubmission = { checklistResults: checklistResults, notes: notes, visibility: 'Public', recipients: teamApprovers.map(function(a){ return a.Username; }) };
+  renderSubmitConfirmationModal();
+}
+
+function renderSubmitConfirmationModal(){
+  const root = document.getElementById('modal-root');
+  const p = pendingSubmission;
+  root.innerHTML =
+    '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal" style="max-width:480px;">'+
+    '<div class="modal-head"><h3>Confirm submission</h3><button class="close-x" onclick="closeModal()">'+icon('x',14)+'</button></div>'+
+    '<div class="modal-body">'+
+      '<label class="field-label">Who can see this attempt?</label>'+
+      '<div class="badges-row" style="margin-bottom:16px;">'+
+        '<button type="button" class="btn '+(p.visibility==='Public'?'btn-navy':'btn-outline')+' btn-sm" onclick="setSubmissionVisibility(\'Public\')">'+icon('users',13)+' Public (team + reviewers)</button>'+
+        '<button type="button" class="btn '+(p.visibility==='Private'?'btn-navy':'btn-outline')+' btn-sm" onclick="setSubmissionVisibility(\'Private\')">'+icon('user',13)+' Private (reviewers only)</button>'+
+      '</div>'+
+      '<label class="field-label">Recipients</label>'+
+      '<p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Approvers on your team who will see this submission in their Review Queue.</p>'+
+      '<div id="recipientList">'+renderRecipientList()+'</div>'+
+    '</div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'+
+      '<button class="btn btn-primary" id="confirmSubmitBtn" onclick="submitForReview()">Confirm &amp; Submit</button>'+
+    '</div></div></div>';
+}
+
+function renderRecipientList(){
+  if(!teamApprovers.length){
+    return '<div class="hint-banner">'+icon('alert',15)+'<span>No approvers are set up for your team yet. Your submission will still be saved and any approver on your team can review it later.</span></div>';
+  }
+  return teamApprovers.map(function(a){
+    const checked = pendingSubmission.recipients.indexOf(a.Username) > -1;
+    const avatarInner = a.Image ? '<img src="'+escapeAttr(a.Image)+'" onerror="this.parentElement.textContent=\''+initials(a.Name)+'\';">' : initials(a.Name);
+    return '<label style="display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--border); cursor:pointer;">'+
+      '<input type="checkbox" '+(checked?'checked':'')+' onchange="toggleRecipient(\''+escapeAttr(a.Username)+'\')" style="width:auto;">'+
+      '<div class="avatar-mini">'+avatarInner+'</div>'+
+      '<span style="font-size:13px; font-weight:600;">'+escapeHtml(a.Name)+'</span>'+
+    '</label>';
+  }).join('');
+}
+
+function setSubmissionVisibility(v){ pendingSubmission.visibility = v; renderSubmitConfirmationModal(); }
+function toggleRecipient(username){
+  const idx = pendingSubmission.recipients.indexOf(username);
+  if(idx > -1) pendingSubmission.recipients.splice(idx,1);
+  else pendingSubmission.recipients.push(username);
+}
+
+async function submitForReview(){
+  const p = pendingSubmission;
+  const confirmBtn = document.getElementById('confirmSubmitBtn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Uploading…';
 
   try{
     let audioBase64 = null, audioMime = null;
@@ -1232,30 +1519,29 @@ async function submitForReview(){
       audioMime = call.recordedBlob.type;
     }
     const payload = {
-      username: currentUser.Username,
-      agentName: currentUser.Name,
       scenarioId: call.scenario.id,
-      scenarioTitle: call.scenario.title,
-      category: call.scenario.category,
-      direction: call.scenario.direction,
       practiceMode: call.mode === 'Freestyle' ? 'Impromptu' : call.mode,
       hideLinesUsed: !!call.hideLinesEverOn,
       transcript: call.speechTranscript || '',
+      visibility: p.visibility,
+      recipients: p.recipients,
       duration: call.seconds,
-      checklist: checklistResults,
-      notes: notes,
+      checklist: p.checklistResults,
+      notes: p.notes,
       audioBase64: audioBase64,
       audioMime: audioMime
     };
-    await gsRun('submitCall', payload);
+    await authedRun('submitCall', payload);
+    closeModal();
+    pendingSubmission = null;
     toast('Call submitted to your reviewer.', 'success');
-    state.submissions = await gsRun('getSubmissions');
+    state.submissions = await authedRun('getSubmissions', {});
     exitCall();
     showView('trainee-progress');
   }catch(err){
     toast('Submission failed: ' + (err && err.message ? err.message : err), 'error');
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = 'Send to Reviewer ' + icon('chevronRight',14);
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Confirm & Submit';
   }
 }
 
@@ -1267,33 +1553,99 @@ function renderTraineeProgress(){
   const approved = mine.filter(function(s){ return s.status==='approved'; }).length;
   const pending = mine.filter(function(s){ return s.status==='pending'; }).length;
   const retry = mine.filter(function(s){ return s.status==='retry'; }).length;
+  const scored = mine.filter(function(s){ return s.score!==null; });
+  const avgScore = scored.length ? (scored.reduce(function(a,s){ return a+s.score; },0)/scored.length).toFixed(1) : '—';
 
   document.getElementById('progressStats').innerHTML =
     '<div class="card stat-card"><div class="stat-num">'+mine.length+'</div><div class="stat-label">Calls submitted</div></div>'+
     '<div class="card stat-card"><div class="stat-num" style="color:var(--amber);">'+pending+'</div><div class="stat-label">Awaiting review</div></div>'+
     '<div class="card stat-card"><div class="stat-num" style="color:var(--green);">'+approved+'</div><div class="stat-label">Approved</div></div>'+
-    '<div class="card stat-card"><div class="stat-num" style="color:var(--red);">'+retry+'</div><div class="stat-label">Sent back</div></div>';
+    '<div class="card stat-card"><div class="stat-num" style="color:var(--primary);">'+avgScore+'</div><div class="stat-label">Average score</div></div>';
 
   const pct = Math.min(100, Math.round((approved/8)*100));
   document.getElementById('competencyFill').style.width = pct+'%';
 
+  renderStreak(mine);
+  renderScoreChart(scored);
+
+  const search = (document.getElementById('progressSearch').value || '').toLowerCase();
+  const statusFilter = document.getElementById('progressStatusFilter').value;
+  const modeFilter = document.getElementById('progressModeFilter').value;
+  let filtered = mine.slice().sort(function(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+  if(search) filtered = filtered.filter(function(s){ return (s.scenarioTitle+' '+s.category).toLowerCase().indexOf(search) > -1; });
+  if(statusFilter) filtered = filtered.filter(function(s){ return s.status === statusFilter; });
+  if(modeFilter) filtered = filtered.filter(function(s){ return s.practiceMode === modeFilter; });
+
   const list = document.getElementById('mySubmissionsList');
-  if(!mine.length){ list.innerHTML = emptyState('No submissions yet. Complete a call and send it to your reviewer.'); return; }
-  list.innerHTML = mine.map(function(s){
-    const modeClass = 'badge-mode-'+String(s.practiceMode||'').toLowerCase();
-    return '<div class="queue-item">'+
-      '<div><div class="who">'+escapeHtml(s.scenarioTitle)+'</div>'+
+  if(!filtered.length){ list.innerHTML = emptyState(mine.length ? 'No submissions match your filters.' : 'No submissions yet. Complete a call and send it to your reviewer.'); return; }
+  list.innerHTML = filtered.map(mySubmissionCardHTML).join('');
+}
+
+function renderStreak(mine){
+  const days = new Set(mine.map(function(s){ return new Date(s.timestamp).toDateString(); }));
+  let streak = 0;
+  const cursor = new Date();
+  while(days.has(cursor.toDateString())){ streak++; cursor.setDate(cursor.getDate()-1); }
+
+  document.getElementById('streakSummary').innerHTML =
+    '<div class="streak-num">'+streak+' day'+(streak===1?'':'s')+'</div>'+
+    '<div style="font-size:12px; color:var(--muted); margin-top:2px;">'+(streak>0 ? 'Current streak, keep it going.' : 'Practice today to start a streak.')+'</div>';
+
+  const cal = document.getElementById('streakCalendar');
+  const cells = [];
+  for(let i=27; i>=0; i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const active = days.has(d.toDateString());
+    cells.push('<div class="streak-day '+(active?'active':'')+'" title="'+d.toLocaleDateString()+'"></div>');
+  }
+  cal.innerHTML = cells.join('');
+}
+
+function renderScoreChart(scored){
+  const el = document.getElementById('scoreChart');
+  if(!scored.length){ el.innerHTML = '<div style="color:var(--muted); font-size:12.5px; padding:20px 0; text-align:center;">No scored attempts yet.</div>'; return; }
+  const points = scored.slice().sort(function(a,b){ return new Date(a.timestamp)-new Date(b.timestamp); }).slice(-12);
+  const w = 100, h = 46, stepX = points.length>1 ? w/(points.length-1) : 0;
+  const coords = points.map(function(p,i){ return [i*stepX, h - (p.score/5)*h]; });
+  const path = coords.map(function(c,i){ return (i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1); }).join(' ');
+  const dots = coords.map(function(c,i){ return '<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="2.2" fill="var(--accent)"><title>'+points[i].score+'/5</title></circle>'; }).join('');
+  el.innerHTML = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%; height:90px; overflow:visible;">'+
+    '<path d="'+path+'" fill="none" stroke="var(--primary)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>'+dots+'</svg>'+
+    '<div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted-2); margin-top:4px;"><span>'+fmtDate(points[0].timestamp).split(' ·')[0]+'</span><span>'+fmtDate(points[points.length-1].timestamp).split(' ·')[0]+'</span></div>';
+}
+
+function mySubmissionCardHTML(s){
+  const modeClass = 'badge-mode-'+String(s.practiceMode||'').toLowerCase();
+  const expanded = expandedSubmissionId === s.id;
+  return '<div class="card submission-card">'+
+    '<div class="sc-head row-clickable" onclick="toggleMySubmission(\''+s.id+'\')">'+
+      '<div><div class="who" style="color:var(--primary); font-weight:700;">'+escapeHtml(s.scenarioTitle)+'</div>'+
       '<div class="meta">'+fmtDate(s.timestamp)+' · '+fmtDuration(s.duration)+(s.notes?' · has notes':'')+'</div>'+
-      '<div class="badges-row" style="margin-top:6px;">'+
+      '<div class="badges-row" style="margin-top:8px;">'+
         (s.practiceMode ? '<span class="badge '+modeClass+'">'+escapeHtml(s.practiceMode)+'</span>' : '')+
         (s.hideLinesUsed ? '<span class="badge badge-hidden">Lines hidden</span>' : '')+
-      '</div>'+
-      (s.status!=='pending' && s.feedback ? '<div style="margin-top:8px; font-size:12.5px; background:var(--bg); padding:9px 11px; border-radius:8px;"><b>Reviewer feedback:</b> '+escapeHtml(s.feedback)+'</div>' : '')+
-      '</div>'+
+        '<span class="badge badge-category">'+escapeHtml(s.visibility||'Public')+'</span>'+
+      '</div></div>'+
       '<div style="display:flex; align-items:center; gap:9px;">'+
       (s.score!==null?'<span class="badge badge-outbound">Score '+s.score+'/5</span>':'')+
-      '<span class="badge badge-'+s.status+'">'+statusLabel(s.status)+'</span></div></div>';
-  }).join('');
+      '<span class="badge badge-'+s.status+'">'+statusLabel(s.status)+'</span></div>'+
+    '</div>'+
+    (expanded ? mySubmissionDetailHTML(s) : '')+
+  '</div>';
+}
+
+function mySubmissionDetailHTML(s){
+  return '<div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">'+
+    (s.audioFileId ? '<label class="field-label">Your recording</label><audio id="audio-'+s.id+'" controls></audio><div id="audioLoad-'+s.id+'" style="font-size:11.5px; color:var(--muted); margin-top:6px;">Loading recording…</div>' : '<div style="font-size:12.5px; color:var(--muted);">No recording was submitted for this attempt.</div>')+
+    (s.transcript ? '<label class="field-label" style="margin-top:14px;">Auto-transcribed speech</label><div class="transcript-block">'+escapeHtml(s.transcript)+'</div>' : '')+
+    (s.status!=='pending' && s.feedback ? '<div style="margin-top:12px; font-size:12.5px; background:var(--bg); padding:10px 12px; border-radius:8px;"><b>Reviewer feedback:</b> '+escapeHtml(s.feedback)+'</div>' : '')+
+  '</div>';
+}
+
+function toggleMySubmission(id){
+  expandedSubmissionId = expandedSubmissionId === id ? null : id;
+  renderTraineeProgress();
+  if(expandedSubmissionId) loadAudioForSubmission(expandedSubmissionId);
 }
 
 function statusLabel(s){ return {pending:'Pending review', approved:'Approved', retry:'Needs retry'}[s] || s; }
@@ -1372,7 +1724,7 @@ async function loadAudioForSubmission(id){
   if(!audioEl) return;
   if(audioCache[s.audioFileId]){ audioEl.src = audioCache[s.audioFileId]; if(loadEl) loadEl.style.display='none'; return; }
   try{
-    const dataUrl = await gsRun('getAudioDataUrl', s.audioFileId);
+    const dataUrl = await authedRun('getAudioDataUrl', s.id);
     audioCache[s.audioFileId] = dataUrl;
     if(document.getElementById('audio-'+id)){ document.getElementById('audio-'+id).src = dataUrl; }
     if(document.getElementById('audioLoad-'+id)){ document.getElementById('audioLoad-'+id).style.display = 'none'; }
@@ -1391,7 +1743,7 @@ async function reviewAction(id, status){
   const feedbackEl = document.getElementById('feedback-'+id);
   const feedback = feedbackEl ? feedbackEl.value.trim() : (s.feedback||'');
   try{
-    await gsRun('updateReview', id, { status:status, score:s.score, feedback:feedback });
+    await authedRun('updateReview', id, { status:status, score:s.score, feedback:feedback });
     s.status = status; s.feedback = feedback;
     expandedSubmissionId = null;
     renderQueue();
@@ -1404,13 +1756,15 @@ async function reviewAction(id, status){
    REVIEWER — SCENARIO MANAGER (Admin only)
    ============================================================ */
 function renderScriptsTable(){
-  if(!isAdmin(currentUser)) return;
+  if(!isApproverOrAdmin(currentUser)) return;
   const t = document.getElementById('scriptsTable');
   if(!state.scenarios.length){ t.innerHTML = '<tr><td>'+emptyState('No scenarios yet.')+'</td></tr>'; return; }
-  t.innerHTML = '<tr><th>Scenario</th><th>Store</th><th>Category</th><th>Direction</th><th>Difficulty</th><th>Lines</th><th></th></tr>'+
+  const showTeam = isAdmin(currentUser);
+  t.innerHTML = '<tr><th>Scenario</th><th>Store</th>'+(showTeam?'<th>Team</th>':'')+'<th>Category</th><th>Direction</th><th>Difficulty</th><th>Lines</th><th></th></tr>'+
     state.scenarios.map(function(s){
       return '<tr><td><b>'+escapeHtml(s.title)+'</b><div style="color:var(--muted); font-size:11.5px;">'+escapeHtml(s.goal)+'</div></td>'+
         '<td>'+escapeHtml(s.storeName)+'<div style="color:var(--muted); font-size:11.5px;">'+escapeHtml(s.phone)+'</div></td>'+
+        (showTeam?'<td>'+escapeHtml(s.team||'All teams')+'</td>':'')+
         '<td><span class="badge badge-category">'+escapeHtml(s.category||'General')+'</span></td>'+
         '<td><span class="badge badge-'+s.direction+'">'+s.direction+'</span></td>'+
         '<td><span class="badge badge-'+s.difficulty.toLowerCase()+'">'+s.difficulty+'</span></td>'+
@@ -1423,8 +1777,8 @@ function renderScriptsTable(){
 async function deleteScenarioUI(id){
   if(!confirm('Delete this scenario? This cannot be undone.')) return;
   try{
-    await gsRun('deleteScenario', id);
-    state.scenarios = await gsRun('getScenarios');
+    await authedRun('deleteScenario', id);
+    state.scenarios = await authedRun('getScenarios');
     renderScriptsTable();
     toast('Scenario deleted.', 'default');
   }catch(err){ toast('Could not delete: '+(err&&err.message?err.message:err), 'error'); }
@@ -1435,7 +1789,7 @@ let editingScript = null;
 function openScriptEditor(id){
   const existing = id ? state.scenarios.find(function(s){ return s.id===id; }) : null;
   editingScript = existing ? JSON.parse(JSON.stringify(existing)) : {
-    id:null, title:'', category:'Invoice Confirmation', direction:'outbound', difficulty:'Beginner',
+    id:null, title:'', category:'Invoice Confirmation', direction:'outbound', difficulty:'Beginner', team: isAdmin(currentUser) ? '' : currentUser.Team,
     storeName:'', phone:'', goal:'', checklist:[''], script:[{speaker:'trainee', text:''}]
   };
   renderScriptModal();
@@ -1453,6 +1807,10 @@ function renderScriptModal(){
       '<label class="field-label">Category</label>'+
       '<input type="text" id="edit-category" list="categoryList" value="'+escapeAttr(e.category)+'" style="margin-bottom:12px;">'+
       '<datalist id="categoryList"><option value="Invoice Confirmation"><option value="Clarification Call"><option value="Dispute Resolution"></datalist>'+
+      '<label class="field-label">Team</label>'+
+      (isAdmin(currentUser)
+        ? '<input type="text" id="edit-team" value="'+escapeAttr(e.team)+'" placeholder="Leave blank to make visible to all teams" style="margin-bottom:12px;">'
+        : '<input type="text" value="'+escapeAttr(currentUser.Team)+'" disabled style="margin-bottom:12px; background:var(--bg); color:var(--muted);"><input type="hidden" id="edit-team" value="'+escapeAttr(currentUser.Team)+'">')+
       '<div class="grid grid-2" style="margin-bottom:12px;">'+
         '<div><label class="field-label">Store (Blooms The Chemist branch)</label><input type="text" id="edit-store" value="'+escapeAttr(e.storeName)+'"></div>'+
         '<div><label class="field-label">Store phone</label><input type="text" id="edit-phone" value="'+escapeAttr(e.phone)+'"></div>'+
@@ -1503,11 +1861,12 @@ function renderChecklistLines(){
 function addChecklistLine(){ editingScript.checklist.push(''); renderChecklistLines(); }
 function removeChecklistLine(i){ editingScript.checklist.splice(i,1); renderChecklistLines(); }
 
-function closeModal(){ document.getElementById('modal-root').innerHTML = ''; editingScript = null; editingUser = null; }
+function closeModal(){ document.getElementById('modal-root').innerHTML = ''; editingScript = null; editingUser = null; pendingSubmission = null; }
 
 async function saveScenarioUI(){
   editingScript.title = document.getElementById('edit-title').value.trim();
   editingScript.category = document.getElementById('edit-category').value.trim();
+  editingScript.team = document.getElementById('edit-team').value.trim();
   editingScript.storeName = document.getElementById('edit-store').value.trim();
   editingScript.phone = document.getElementById('edit-phone').value.trim();
   editingScript.direction = document.getElementById('edit-direction').value;
@@ -1520,8 +1879,8 @@ async function saveScenarioUI(){
     toast('Please add a title, store name, and at least one script line.', 'warn'); return;
   }
   try{
-    await gsRun('saveScenario', editingScript);
-    state.scenarios = await gsRun('getScenarios');
+    await authedRun('saveScenario', editingScript);
+    state.scenarios = await authedRun('getScenarios');
     toast(editingScript.id ? 'Scenario updated.' : 'New scenario created.', 'success');
     closeModal();
     renderScriptsTable();
@@ -1534,7 +1893,7 @@ async function saveScenarioUI(){
 let usersCache = [];
 async function renderRosterTable(){
   if(!isAdmin(currentUser)) return;
-  usersCache = await gsRun('getUsers');
+  usersCache = await authedRun('getUsers');
   const t = document.getElementById('rosterTable');
   if(!usersCache.length){ t.innerHTML = '<tr><td>'+emptyState('No users yet. Click "Add User" to create the first account.', 'users')+'</td></tr>'; return; }
   t.innerHTML = '<tr><th>Name</th><th>Username</th><th>Position</th><th>Team</th><th>Role</th><th></th></tr>'+
@@ -1553,7 +1912,7 @@ async function renderRosterTable(){
 async function deleteUserUI(username){
   if(username === currentUser.Username){ toast('You can\'t remove your own account while logged in.', 'warn'); return; }
   if(!confirm('Remove this user? They will no longer be able to sign in.')) return;
-  await gsRun('deleteUser', username);
+  await authedRun('deleteUser', username);
   renderRosterTable();
   toast('User removed.', 'default');
 }
@@ -1605,7 +1964,7 @@ async function saveUserUI(){
     toast('Username, Name, and Password are required.', 'warn'); return;
   }
   try{
-    await gsRun('saveUser', payload);
+    await authedRun('saveUser', payload);
     closeModal();
     await renderRosterTable();
     toast(payload.originalUsername ? 'User updated.' : 'User added.', 'success');
@@ -1658,7 +2017,7 @@ async function saveBrandingSettings(){
     ACCENT_COLOR: document.getElementById('set-accentColor').value.trim()
   };
   try{
-    settings = await gsRun('saveSettings', updated);
+    settings = await authedRun('saveSettings', updated);
     applyBranding(settings);
     toast('Settings saved.', 'success');
   }catch(err){ toast('Could not save settings: '+(err&&err.message?err.message:err), 'error'); }
