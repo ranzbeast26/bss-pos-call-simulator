@@ -32,7 +32,7 @@
     --shadow-lg:0 18px 44px rgba(7,55,99,.16), 0 3px 10px rgba(7,55,99,.08);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;height:100%;}
   body{font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased;}
   h1,h2,h3,h4{margin:0; font-weight:700; letter-spacing:-0.01em;}
   p{margin:0;}
@@ -44,19 +44,19 @@
   @keyframes spin{to{transform:rotate(360deg);}}
   #appLoading span{color:var(--muted); font-size:13.5px; font-weight:600;}
 
-  .topbar{display:flex; align-items:center; justify-content:space-between; padding:10px 24px; background:var(--primary); position:sticky; top:0; z-index:50; box-shadow:0 2px 10px rgba(0,0,0,.18); gap:16px; flex-wrap:wrap;}
-  .topbar-left{display:flex; align-items:center; gap:22px; min-width:0;}
+  .topbar-wrap{position:sticky; top:0; z-index:50; box-shadow:0 2px 10px rgba(0,0,0,.18);}
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:11px 24px; background:var(--primary); gap:16px;}
   .brand{display:flex; align-items:center; gap:11px; flex:none;}
-  .brand-divider{width:1px; height:26px; background:rgba(255,255,255,.16); flex:none;}
   .brand-logo-chip{height:34px; width:auto; min-width:34px; display:flex; align-items:center; justify-content:flex-start; flex:none;}
   .brand-logo-chip img{max-width:140px; max-height:100%; width:auto; height:100%; object-fit:contain;}
   .brand-text b{color:#fff; font-size:16.5px; display:block; line-height:1.15;}
   .brand-text span{font-size:11px; color:#B9C9DC; letter-spacing:.03em;}
 
-  .topnav{display:flex; gap:3px; background:rgba(255,255,255,.08); padding:4px; border-radius:10px;}
-  .topnav button{border:none; background:transparent; color:#C7D6E8; padding:8px 15px; border-radius:7px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:7px; transition:.15s;}
-  .topnav button.active{background:#fff; color:var(--primary);}
-  .topnav button:not(.active):hover{background:rgba(255,255,255,.12); color:#fff;}
+  .subnav-bar{background:var(--primary-dark); padding:0 24px; overflow-x:auto;}
+  .topnav{display:flex; gap:2px;}
+  .topnav button{border:none; background:transparent; color:#AEC0D8; padding:12px 16px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:7px; transition:.15s; border-bottom:3px solid transparent; white-space:nowrap;}
+  .topnav button.active{color:#fff; border-bottom-color:var(--accent);}
+  .topnav button:not(.active):hover{color:#fff;}
 
   .top-right{display:flex; align-items:center; gap:10px;}
   .user-chip{display:flex; align-items:center; gap:9px; background:rgba(255,255,255,.08); padding:5px 12px 5px 5px; border-radius:999px; color:#fff; font-size:13px; font-weight:600;}
@@ -66,7 +66,7 @@
   .logout-btn{background:rgba(255,255,255,.08); border:none; color:#C7D6E8; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
   .logout-btn:hover{background:rgba(255,255,255,.16); color:#fff;}
 
-  main{max-width:1200px; margin:0 auto; padding:26px 24px 80px;}
+  main{max-width:1200px; margin:0 auto; padding:26px 24px 60px; width:100%; flex:1 0 auto;}
   .view{display:none;}
   .view.active{display:block; animation:fadeUp .3s ease;}
   @keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
@@ -274,14 +274,13 @@
   .add-line-btn{font-size:12px; color:var(--primary); background:none; border:none; font-weight:700; padding:6px 0; display:flex; align-items:center; gap:5px;}
 
   .hint-banner{background:var(--primary-tint); color:var(--primary); font-size:12px; padding:10px 14px; border-radius:8px; margin-bottom:16px; display:flex; gap:8px; align-items:flex-start;}
-  .app-footer{border-top:1px solid var(--border); background:var(--card); margin-top:48px;}
+  .app-footer{border-top:1px solid var(--border); background:var(--card); flex-shrink:0;}
   .app-footer p{max-width:1200px; margin:0 auto; padding:16px 24px; font-size:11.5px; color:var(--muted-2); text-align:center; line-height:1.5;}
   @media(max-width:760px){
     .topbar{padding:10px 16px;}
-    .topbar-left{gap:12px;}
-    .brand-divider{display:none;}
+    .subnav-bar{padding:0 16px;}
     .brand-text span{display:none;}
-    .topnav button{padding:7px 10px; font-size:12px;}
+    .topnav button{padding:10px 12px; font-size:12px;}
     .user-chip .who small{display:none;}
     main{padding:18px 14px 60px;}
   }
@@ -293,21 +292,20 @@
 <div id="appLoading"><div class="spinner"></div><span>Loading Call Simulator…</span></div>
 <div id="toast-container"></div>
 
-<div id="appRoot" style="display:none;">
+<div id="appRoot" style="display:none; min-height:100%; flex-direction:column;">
 
-<header class="topbar">
-  <div class="topbar-left">
+<header class="topbar-wrap">
+  <div class="topbar">
     <div class="brand">
       <div class="brand-logo-chip"><img id="brandLogo" src="" alt="Company logo"></div>
       <div class="brand-text"><b id="brandAppName">Call Simulator</b><span id="brandSubtitle">ARETEX · BSS POS Operations</span></div>
     </div>
-    <div class="brand-divider"></div>
-    <nav class="topnav" id="topnav"></nav>
+    <div class="top-right" id="topRight" style="display:none;">
+      <div class="user-chip" id="userChip"></div>
+      <button class="logout-btn" id="logoutBtn" onclick="requestLogout()" title="Log out"></button>
+    </div>
   </div>
-  <div class="top-right" id="topRight" style="display:none;">
-    <div class="user-chip" id="userChip"></div>
-    <button class="logout-btn" id="logoutBtn" onclick="requestLogout()" title="Log out"></button>
-  </div>
+  <div class="subnav-bar" id="subnavBar" style="display:none;"><nav class="topnav" id="topnav"></nav></div>
 </header>
 
 <main>
@@ -579,10 +577,19 @@ function gsRun(fnName){
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({ fn: fnName, args: args })
   })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(!data || !data.success) throw new Error((data && data.error) || 'Server error');
-      return data.result;
+    .catch(function(networkErr){
+      throw new Error('Could not reach the Apps Script backend at all. Most likely causes: (1) the Web App deployment needs a new version since doPost() was added, edit the deployment and choose "New version"; (2) "Who has access" is restricted to your organization instead of "Anyone", which blocks anonymous cross-origin requests; (3) DEPLOYED_WEBAPP_URL in this file does not exactly match the current /exec URL. Raw error: ' + networkErr.message);
+    })
+    .then(function(res){
+      return res.text().then(function(text){
+        let data;
+        try{ data = JSON.parse(text); }
+        catch(parseErr){
+          throw new Error('The server did not return JSON (HTTP ' + res.status + '). It may be showing a Google sign-in page instead of running the script. Set the deployment\'s "Who has access" to "Anyone" (not restricted to your organization), redeploy as a new version, and confirm DEPLOYED_WEBAPP_URL matches exactly.');
+        }
+        if(!data || !data.success) throw new Error((data && data.error) || ('Server error (HTTP ' + res.status + ')'));
+        return data.result;
+      });
     });
 }
 
@@ -611,7 +618,7 @@ async function init(){
     applyBranding(settings);
     renderStaticLabels();
     document.getElementById('appLoading').style.display = 'none';
-    document.getElementById('appRoot').style.display = 'block';
+    document.getElementById('appRoot').style.display = 'flex';
     showView('login');
   }catch(err){
     document.getElementById('appLoading').innerHTML =
@@ -748,6 +755,7 @@ function logout(){
   currentUser = null;
   document.getElementById('topRight').style.display = 'none';
   document.getElementById('topnav').innerHTML = '';
+  document.getElementById('subnavBar').style.display = 'none';
   showView('login');
 }
 
@@ -762,6 +770,7 @@ function renderTopnav(){
   nav.innerHTML = isApproverOrAdmin(currentUser)
     ? dashboardBtn + practiceBtn + progressBtn
     : practiceBtn + progressBtn;
+  document.getElementById('subnavBar').style.display = 'block';
 }
 
 function renderUserChip(){
@@ -1110,7 +1119,7 @@ async function startRecordingFlow_(){
   audioChunks = [];
   const mimeType = pickMimeType_();
   try{
-    mediaRecorder = mimeType ? new MediaRecorder(mediaStream, {mimeType: mimeType}) : new MediaRecorder(mediaStream);
+    mediaRecorder = mimeType ? new MediaRecorder(mediaStream, {mimeType: mimeType, audioBitsPerSecond: 32000}) : new MediaRecorder(mediaStream, {audioBitsPerSecond: 32000});
   }catch(e){
     showMicError_('Could not start the recorder on this browser: ' + (e && e.message ? e.message : e));
     mediaStream.getTracks().forEach(function(t){ t.stop(); });
