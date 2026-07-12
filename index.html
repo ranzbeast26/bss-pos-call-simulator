@@ -41,30 +41,80 @@
 
   #appLoading{position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:1000;}
   .spinner{width:34px; height:34px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--primary); animation:spin .8s linear infinite;}
+  .btn-spinner{display:inline-block; width:13px; height:13px; border-radius:50%; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; animation:spin .7s linear infinite; vertical-align:middle;}
+  .btn-outline .btn-spinner, .btn-ghost .btn-spinner{border-color:rgba(7,55,99,.25); border-top-color:var(--primary);}
   @keyframes spin{to{transform:rotate(360deg);}}
   #appLoading span{color:var(--muted); font-size:13.5px; font-weight:600;}
 
-  .topbar-wrap{position:sticky; top:0; z-index:50; box-shadow:0 2px 10px rgba(0,0,0,.18);}
-  .topbar{display:flex; align-items:center; justify-content:space-between; padding:11px 24px; background:var(--primary); gap:16px;}
-  .brand{display:flex; align-items:center; gap:11px; flex:none;}
-  .brand-logo-chip{height:34px; width:auto; min-width:34px; display:flex; align-items:center; justify-content:flex-start; flex:none;}
-  .brand-logo-chip img{max-width:140px; max-height:100%; width:auto; height:100%; object-fit:contain;}
-  .brand-text b{color:#fff; font-size:16.5px; display:block; line-height:1.15;}
-  .brand-text span{font-size:11px; color:#B9C9DC; letter-spacing:.03em;}
+  .app-shell{display:flex; min-height:100%; width:100%;}
+  .app-content-col{flex:1; display:flex; flex-direction:column; min-height:100vh; min-width:0;}
+  .brand{display:flex; align-items:center; flex:none;}
 
-  .subnav-bar{background:var(--primary-dark); padding:0 24px; overflow-x:auto;}
-  .topnav{display:flex; gap:2px;}
-  .topnav button{border:none; background:transparent; color:#AEC0D8; padding:12px 16px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:7px; transition:.15s; border-bottom:3px solid transparent; white-space:nowrap;}
-  .topnav button.active{color:#fff; border-bottom-color:var(--accent);}
-  .topnav button:not(.active):hover{color:#fff;}
+  .brand-logo-chip{height:40px; width:auto; min-width:40px; display:flex; align-items:center; justify-content:center; flex:none; background:var(--primary); border-radius:9px; padding:7px 10px;}
+  .brand-logo-chip img{max-width:150px; max-height:100%; width:auto; height:100%; object-fit:contain;}
 
-  .top-right{display:flex; align-items:center; gap:10px;}
-  .user-chip{display:flex; align-items:center; gap:9px; background:rgba(255,255,255,.08); padding:5px 12px 5px 5px; border-radius:999px; color:#fff; font-size:13px; font-weight:600;}
-  .avatar-mini{width:26px; height:26px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; color:#fff; overflow:hidden; flex:none;}
+  .sidebar{width:256px; flex:none; background:linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); display:none; flex-direction:column; position:sticky; top:0; height:100vh; z-index:60; transition:width .18s ease; box-shadow:2px 0 12px rgba(7,55,99,.12);}
+  .sidebar.visible{display:flex;}
+
+  .sidebar-brand{padding:18px 16px 16px; border-bottom:1px solid rgba(255,255,255,.12);}
+  .sidebar-brand-row{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px;}
+  .sidebar-logo-img{height:30px; width:auto; max-width:150px; object-fit:contain; flex:none;}
+  .sidebar-collapse-btn{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); color:#D7E3F1; width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;}
+  .sidebar-collapse-btn:hover{background:rgba(255,255,255,.2); color:#fff;}
+  .sidebar-brand .brand-text{min-width:0; width:100%;}
+  .sidebar-brand .brand-text b{color:#fff; font-size:15px; display:block; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .sidebar-brand .brand-text span{color:#A9BCD3; font-size:10.5px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top:2px;}
+
+  .sidebar-nav{flex:1; overflow-y:auto; overflow-x:hidden; padding:16px 12px;}
+  .sidebar-nav .nav-section-label{font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#7E93B3; padding:4px 12px 8px;}
+  .sidebar-nav button{width:100%; display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; border:none; border-left:3px solid transparent; background:transparent; color:#B9C9DC; font-size:13.5px; font-weight:600; margin-bottom:4px; text-align:left; transition:.15s; white-space:nowrap; overflow:hidden;}
+  .sidebar-nav button svg{flex:none;}
+  .sidebar-nav button:hover:not(.active){background:rgba(255,255,255,.08); color:#fff;}
+  .sidebar-nav button.active{background:rgba(255,255,255,.14); color:#fff; border-left-color:var(--accent);}
+
+  .sidebar-footer{border-top:1px solid rgba(255,255,255,.12); padding:14px 16px; display:flex; align-items:center; gap:10px;}
+  .user-chip{display:flex; align-items:center; gap:9px; flex:1; min-width:0; color:#fff; font-size:13px; font-weight:700; background:transparent; border:none; padding:6px; border-radius:9px; transition:.15s; text-align:left;}
+  .user-chip:hover{background:rgba(255,255,255,.08);}
+  .user-chip .who{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .user-chip .who small{display:block; color:#A9BCD3; font-weight:500; font-size:10.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .avatar-mini{width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; overflow:hidden; flex:none;}
   .avatar-mini img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
-  .user-chip .who small{display:block; color:#AFC2D9; font-weight:500; font-size:10.5px;}
-  .logout-btn{background:rgba(255,255,255,.08); border:none; color:#C7D6E8; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
-  .logout-btn:hover{background:rgba(255,255,255,.16); color:#fff;}
+  .logout-btn{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#B9C9DC; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;}
+  .logout-btn:hover{background:var(--red); color:#fff; border-color:var(--red);}
+
+  /* Collapsed (icon-only) sidebar, desktop only */
+  .sidebar.collapsed{width:76px;}
+  .sidebar.collapsed .sidebar-brand-row{justify-content:center;}
+  .sidebar.collapsed .sidebar-brand-row .sidebar-logo-img{display:none;}
+  .sidebar.collapsed .brand-text{display:none;}
+  .sidebar.collapsed .sidebar-nav{padding:16px 10px;}
+  .sidebar.collapsed .sidebar-nav button{justify-content:center; padding:12px 0; gap:0;}
+  .sidebar.collapsed .sidebar-nav button span.btn-label{display:none;}
+  .sidebar.collapsed .sidebar-footer{flex-direction:column; padding:14px 8px;}
+  .sidebar.collapsed .user-chip{justify-content:center; padding:6px 0;}
+  .sidebar.collapsed .user-chip .who{display:none;}
+
+  .mobile-topbar{display:none; align-items:center; justify-content:space-between; background:var(--primary); padding:10px 16px; position:sticky; top:0; z-index:55;}
+  .mobile-topbar .brand-text b{color:#fff; font-size:14px;}
+  .mobile-topbar .brand-text span{display:none;}
+  .hamburger-btn{background:rgba(255,255,255,.12); border:none; color:#fff; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .sidebar-overlay{display:none; position:fixed; inset:0; background:rgba(7,20,35,.5); z-index:59;}
+  .sidebar-overlay.visible{display:block;}
+
+  @media(max-width:900px){
+    .mobile-topbar.visible{display:flex;}
+    .sidebar.visible{position:fixed; left:0; top:0; transform:translateX(-100%); transition:transform .22s ease; box-shadow:var(--shadow-lg);}
+    .sidebar.visible.open{transform:translateX(0);}
+    .sidebar.collapsed{width:256px;}
+    .sidebar.collapsed .sidebar-brand-row{justify-content:space-between;}
+    .sidebar.collapsed .sidebar-brand-row .sidebar-logo-img{display:block;}
+    .sidebar.collapsed .brand-text{display:block;}
+    .sidebar.collapsed .sidebar-nav button{justify-content:flex-start; padding:11px 14px; gap:12px;}
+    .sidebar.collapsed .sidebar-nav button span.btn-label{display:inline;}
+    .sidebar.collapsed .sidebar-footer{flex-direction:row; padding:14px 16px;}
+    .sidebar.collapsed .user-chip .who{display:block;}
+    .sidebar.collapsed .user-chip{justify-content:flex-start;}
+  }
 
   main{max-width:1200px; margin:0 auto; padding:26px 24px 60px; width:100%; flex:1 0 auto;}
   .view{display:none;}
@@ -134,6 +184,8 @@
   .login-card h2{font-size:21px; margin-bottom:6px; color:var(--primary); letter-spacing:-0.01em;}
   .login-card p{color:var(--muted); font-size:13px; margin-bottom:22px; line-height:1.6;}
   .login-card label.field-label{text-align:left;}
+  .login-logo-wrap{display:flex; justify-content:center; margin-bottom:16px;}
+  .login-logo-wrap .brand-logo-chip{height:48px;}
   .login-error{background:var(--red-tint); color:var(--red); font-size:12.5px; font-weight:600; padding:9px 12px; border-radius:8px; margin-bottom:14px; display:none; text-align:left;}
 
   .section-title{display:flex; align-items:center; gap:10px; margin:26px 0 14px;}
@@ -286,6 +338,7 @@
   .close-x{border:none; background:var(--bg); width:28px; height:28px; border-radius:50%; color:var(--muted); display:flex; align-items:center; justify-content:center;}
 
   .script-row-edit{display:grid; grid-template-columns:108px 1fr 32px; gap:8px; margin-bottom:8px; align-items:start;}
+  .script-row-edit-var{grid-template-columns:100px 1fr auto 32px;}
   .mini-x{border:none; background:var(--red-tint); color:var(--red); width:32px; height:32px; border-radius:7px; display:flex; align-items:center; justify-content:center;}
   .add-line-btn{font-size:12px; color:var(--primary); background:none; border:none; font-weight:700; padding:6px 0; display:flex; align-items:center; gap:5px;}
 
@@ -293,11 +346,6 @@
   .app-footer{border-top:1px solid var(--border); background:var(--card); flex-shrink:0;}
   .app-footer p{max-width:1200px; margin:0 auto; padding:16px 24px; font-size:11.5px; color:var(--muted-2); text-align:center; line-height:1.5;}
   @media(max-width:760px){
-    .topbar{padding:10px 16px;}
-    .subnav-bar{padding:0 16px;}
-    .brand-text span{display:none;}
-    .topnav button{padding:10px 12px; font-size:12px;}
-    .user-chip .who small{display:none;}
     main{padding:18px 14px 60px;}
   }
   .settings-form label.field-label{margin-top:14px;}
@@ -319,27 +367,44 @@
 <div id="appLoading"><div class="spinner"></div><span>Loading Call Simulator…</span></div>
 <div id="toast-container"></div>
 
-<div id="appRoot" style="display:none; min-height:100%; flex-direction:column;">
+<div id="appRoot" style="display:none;">
 
-<header class="topbar-wrap">
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-logo-chip"><img id="brandLogo" src="" alt="Company logo"></div>
-      <div class="brand-text"><b id="brandAppName">Call Simulator</b><span id="brandSubtitle">ARETEX · BSS POS Operations</span></div>
+<div class="mobile-topbar" id="mobileTopbar">
+  <div class="brand" style="gap:8px;">
+    <img id="mobileBrandLogo" class="sidebar-logo-img" src="" alt="Company logo">
+    <div class="brand-text"><b id="mobileBrandAppName">Call Simulator</b></div>
+  </div>
+  <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileSidebar()"></button>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-row">
+        <img id="brandLogo" class="sidebar-logo-img" src="" alt="Company logo">
+        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Collapse navigation"></button>
+      </div>
+      <div class="brand-text">
+        <b id="brandAppName">Call Simulator</b>
+        <span id="brandSubtitle">ARETEX · BSS POS Operations</span>
+      </div>
     </div>
-    <div class="top-right" id="topRight" style="display:none;">
-      <div class="user-chip" id="userChip"></div>
+    <nav class="sidebar-nav" id="topnav"></nav>
+    <div class="sidebar-footer">
+      <button class="user-chip" id="userChip" onclick="openMyProfileModal()"></button>
       <button class="logout-btn" id="logoutBtn" onclick="requestLogout()" title="Log out"></button>
     </div>
-  </div>
-  <div class="subnav-bar" id="subnavBar" style="display:none;"><nav class="topnav" id="topnav"></nav></div>
-</header>
+  </aside>
+
+  <div class="app-content-col">
 
 <main>
 
   <!-- ===================== LOGIN ===================== -->
   <section class="view" id="view-login">
     <div class="card login-card pad">
+      <div class="login-logo-wrap"><div class="brand-logo-chip"><img id="loginLogo" src="" alt="Company logo"></div></div>
       <h2>Sign in</h2>
       <p>Practice calling Blooms The Chemist stores in a guided simulation designed to prepare you for real client conversations. Build your confidence handling both outbound and inbound calls. Sign in with your BSS POS Operations account to begin.</p>
       <div class="login-error" id="loginError"></div>
@@ -378,13 +443,15 @@
 
     <div class="call-layout">
       <div class="phone-card">
-        <div class="phone-brand" id="phoneBrandLabel"></div>
-        <div class="phone-status" id="phoneStatus">Ready to dial</div>
-        <div class="phone-avatar-wrap"><div class="phone-avatar" id="phoneAvatar">—</div></div>
-        <div class="phone-name" id="phoneName">—</div>
-        <div class="phone-number" id="phoneNumber">—</div>
-        <div class="wave" id="callWave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="phone-timer" id="phoneTimer">00:00</div>
+        <div id="callInfoPanel" style="display:none;">
+          <div class="phone-brand" id="phoneBrandLabel"></div>
+          <div class="phone-status" id="phoneStatus">Ready to dial</div>
+          <div class="phone-avatar-wrap"><div class="phone-avatar" id="phoneAvatar">—</div></div>
+          <div class="phone-name" id="phoneName">—</div>
+          <div class="phone-number" id="phoneNumber">—</div>
+          <div class="wave" id="callWave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="phone-timer" id="phoneTimer">00:00</div>
+        </div>
         <div class="live-caption" id="liveCaption"></div>
         <div class="hint-banner" id="micErrorBanner" style="display:none; background:rgba(179,49,31,.16); color:#ffb4a8; text-align:left;"></div>
 
@@ -562,7 +629,7 @@
           <div><label class="field-label">Primary colour (header / brand)</label><input type="text" id="set-primaryColor"></div>
           <div><label class="field-label">Accent colour (buttons / highlights)</label><input type="text" id="set-accentColor"></div>
         </div>
-        <button class="btn btn-primary" style="margin-top:18px;" onclick="saveBrandingSettings()">Save settings</button>
+        <button class="btn btn-primary" id="saveSettingsBtn" style="margin-top:18px;" onclick="saveBrandingSettings()">Save settings</button>
       </div>
     </div>
   </section>
@@ -573,6 +640,9 @@
   <p>BSS POS Call Simulator is an internal ARETEX training tool. It does not place real calls. All scenarios and recordings are for practice and coaching purposes only.</p>
 </footer>
 
+  </div>
+</div>
+
 </div>
 
 <div id="modal-root"></div>
@@ -582,6 +652,7 @@
    ICONS
    ============================================================ */
 const ICONS = {
+  menu: '<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>',
   phone: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>',
   phoneOut: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M15 4h5v5"/><path d="M20 4l-6 6"/>',
   phoneIn: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M20 4l-6 6"/><path d="M14.5 4H20v5.5"/>',
@@ -589,6 +660,7 @@ const ICONS = {
   check: '<path d="M20 6 9 17l-5-5"/>',
   x: '<path d="M18 6 6 18"/><path d="M6 6l12 12"/>',
   chevronRight: '<path d="M9 6l6 6-6 6"/>',
+  chevronLeft: '<path d="M15 6l-6 6 6 6"/>',
   alert: '<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
   users: '<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.4 3-5.2 6.5-5.2s6.5 1.8 6.5 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 13.2c2.6.3 4.5 1.8 4.5 4.3"/>',
@@ -622,7 +694,7 @@ function icon(name, size){ size = size || 16; return '<svg width="'+size+'" heig
  *
  * To enable the external-hosting path, paste your deployed /exec URL below.
  */
-const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbydagodmHrP3GFk52zAEfMGtgrLkRQWcOVU-3pbGIbigGEwxHh8ZR9J8lIQVpJE2EHU/exec';
+const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbwOAdcNHEoR-FLXk1Gky3YYXx9nJIVZSyuxoEOYTrzCVJcuqD2jjsJ5BUb1UsyC6Zqe/exec';
 
 function usingAppsScriptBridge_(){
   return (typeof google !== 'undefined' && !!google.script && !!google.script.run);
@@ -698,6 +770,18 @@ function authedRun(fnName){
 function isApproverOrAdmin(u){ return !!u && (u.Role === 'Approver' || u.Role === 'Admin'); }
 function isAdmin(u){ return !!u && u.Role === 'Admin'; }
 
+function setButtonLoading(btn, loadingText){
+  if(!btn) return;
+  btn.dataset.originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spinner"></span> ' + loadingText;
+}
+function clearButtonLoading(btn){
+  if(!btn) return;
+  if(btn.dataset.originalHtml !== undefined){ btn.innerHTML = btn.dataset.originalHtml; delete btn.dataset.originalHtml; }
+  btn.disabled = false;
+}
+
 /* ============================================================
    INIT
    ============================================================ */
@@ -725,10 +809,31 @@ function applyBranding(s){
   document.getElementById('brandAppName').textContent = s.APP_NAME || 'Call Simulator';
   document.getElementById('brandSubtitle').textContent = (s.COMPANY_NAME || 'ARETEX') + ' · ' + (s.TEAM_NAME || 'BSS POS Operations');
   document.getElementById('brandLogo').src = s.LOGO_URL || '';
+  document.getElementById('loginLogo').src = s.LOGO_URL || '';
+  document.getElementById('mobileBrandAppName').textContent = s.APP_NAME || 'Call Simulator';
+  document.getElementById('mobileBrandLogo').src = s.LOGO_URL || '';
+}
+
+function toggleMobileSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('visible');
+}
+function closeMobileSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
+}
+function toggleSidebarCollapse(){
+  const sb = document.getElementById('sidebar');
+  const collapsed = sb.classList.toggle('collapsed');
+  const btn = document.getElementById('sidebarCollapseBtn');
+  btn.innerHTML = icon(collapsed ? 'chevronRight' : 'chevronLeft', 15);
+  btn.title = collapsed ? 'Expand navigation' : 'Collapse navigation';
 }
 
 function renderStaticLabels(){
   document.getElementById('logoutBtn').innerHTML = icon('logout',15);
+  document.getElementById('hamburgerBtn').innerHTML = icon('menu',18);
+  document.getElementById('sidebarCollapseBtn').innerHTML = icon('chevronLeft',15);
   document.getElementById('backToScenariosBtn').innerHTML = icon('arrowLeft',15) + ' Back to scenarios';
   document.getElementById('dialBtn').innerHTML = icon('phoneOut',15) + ' Start Call';
   document.getElementById('muteBtn').innerHTML = icon('mic',17) + '<small>Mute</small>';
@@ -823,7 +928,8 @@ async function afterLogin(){
   teamApprovers = approvers;
   renderTopnav();
   renderUserChip();
-  document.getElementById('topRight').style.display = 'flex';
+  document.getElementById('sidebar').classList.add('visible');
+  document.getElementById('mobileTopbar').classList.add('visible');
   showView(isApproverOrAdmin(currentUser) ? 'admin' : 'trainee-home');
   toast('Welcome back, ' + currentUser.Name + '.', 'success');
 }
@@ -849,9 +955,10 @@ function logout(){
   if(sessionToken){ gsRun('logout', sessionToken).catch(function(){}); }
   currentUser = null;
   sessionToken = null;
-  document.getElementById('topRight').style.display = 'none';
+  document.getElementById('sidebar').classList.remove('visible','open');
+  document.getElementById('mobileTopbar').classList.remove('visible');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
   document.getElementById('topnav').innerHTML = '';
-  document.getElementById('subnavBar').style.display = 'none';
   showView('login');
 }
 
@@ -866,7 +973,6 @@ function renderTopnav(){
   nav.innerHTML = isApproverOrAdmin(currentUser)
     ? dashboardBtn + practiceBtn + progressBtn
     : practiceBtn + progressBtn;
-  document.getElementById('subnavBar').style.display = 'block';
 }
 
 function renderUserChip(){
@@ -879,10 +985,53 @@ function renderUserChip(){
     '<div class="who">'+escapeHtml(currentUser.Name)+'<small>'+escapeHtml(currentUser.Position||'')+'</small></div>';
 }
 
+function openMyProfileModal(){
+  const root = document.getElementById('modal-root');
+  const avatarInner = currentUser.Image
+    ? '<img src="'+escapeAttr(currentUser.Image)+'" onerror="this.parentElement.textContent=\''+initials(currentUser.Name)+'\';">'
+    : initials(currentUser.Name);
+  root.innerHTML =
+    '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal" style="max-width:400px;">'+
+    '<div class="modal-head"><h3>My profile</h3><button class="close-x" onclick="closeModal()">'+icon('x',14)+'</button></div>'+
+    '<div class="modal-body">'+
+      '<div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">'+
+        '<div class="avatar-mini" style="width:48px; height:48px; font-size:16px;">'+avatarInner+'</div>'+
+        '<div><div style="font-weight:700; font-size:15px; color:var(--primary);">'+escapeHtml(currentUser.Name)+'</div>'+
+        '<div style="font-size:12.5px; color:var(--muted);">'+escapeHtml(currentUser.Position||'')+(currentUser.Team?' · '+escapeHtml(currentUser.Team):'')+'</div></div>'+
+      '</div>'+
+      '<label class="field-label">Name</label><input type="text" value="'+escapeAttr(currentUser.Name)+'" disabled style="margin-bottom:12px; background:var(--bg); color:var(--muted);">'+
+      '<label class="field-label">Position</label><input type="text" value="'+escapeAttr(currentUser.Position||'')+'" disabled style="margin-bottom:16px; background:var(--bg); color:var(--muted);">'+
+      '<div class="hint-banner">'+icon('alert',15)+'<span>Only your password can be changed here. Contact your Admin to update your name, position, or team.</span></div>'+
+      '<label class="field-label">New password</label><input type="password" id="profile-new-password" placeholder="At least 4 characters" style="margin-bottom:10px;">'+
+      '<label class="field-label">Confirm new password</label><input type="password" id="profile-confirm-password">'+
+    '</div>'+
+    '<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="savePasswordBtn" onclick="saveMyPassword()">Update password</button></div>'+
+    '</div></div>';
+}
+
+async function saveMyPassword(){
+  const pw = document.getElementById('profile-new-password').value;
+  const confirmPw = document.getElementById('profile-confirm-password').value;
+  if(!pw || pw.length < 4){ toast('Password must be at least 4 characters.', 'warn'); return; }
+  if(pw !== confirmPw){ toast('Passwords do not match.', 'warn'); return; }
+  const btn = document.getElementById('savePasswordBtn');
+  if(btn.disabled) return;
+  setButtonLoading(btn, 'Updating…');
+  try{
+    await authedRun('updateOwnPassword', pw);
+    closeModal();
+    toast('Password updated.', 'success');
+  }catch(err){
+    toast('Could not update password: '+(err&&err.message?err.message:err), 'error');
+    clearButtonLoading(btn);
+  }
+}
+
 function showView(name){
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('#topnav button').forEach(function(b){ b.classList.toggle('active', b.dataset.v===name); });
+  closeMobileSidebar();
 
   if(name==='trainee-home') renderScenarios();
   if(name==='trainee-progress') renderTraineeProgress();
@@ -980,7 +1129,7 @@ function renderAdminTabsVisibility(){
 
 function initials(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(function(w){ return w[0].toUpperCase(); }).join(''); }
 function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str||''; return d.innerHTML; }
-function escapeAttr(str){ return (str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function escapeAttr(str){ return String(str===null||str===undefined?'':str).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
 
 /* ============================================================
    SCENARIO CARDS
@@ -1018,6 +1167,7 @@ function openCall(scenarioId){
   const scenario = state.scenarios.find(function(s){ return s.id===scenarioId; });
   call = { scenario:scenario, stepIndex:0, seconds:0, recordedURL:null, recordedBlob:null, muted:false, speaker:false, connected:false, mode:'Easy', hideLinesEverOn:false, speechTranscript:'' };
   hideLines = false;
+  document.getElementById('callInfoPanel').style.display = 'none';
   traineeLineArmed = false;
   document.getElementById('hideSwitch').classList.remove('on');
   renderModePills();
@@ -1121,6 +1271,7 @@ function applyModeDefaults(mode){
 
 function beginCall(){
   const scenario = call.scenario;
+  document.getElementById('callInfoPanel').style.display = 'block';
   document.getElementById('preCallActions').style.display = 'none';
   if(scenario.direction === 'outbound'){
     document.getElementById('phoneStatus').textContent = 'Dialing…';
@@ -1210,7 +1361,7 @@ function addBubble(speaker, text){
 function advanceScript(){
   if(call.stepIndex >= call.scenario.script.length){ finishScript(); return; }
   const line = currentScriptLine();
-  const text = line.text.replace('{name}', currentUser.Username || 'your trainer');
+  const text = String(line.text||'').replace('{name}', currentUser.Username || 'your trainer');
   addBubble(line.speaker, text);
   if(line.speaker === 'store') speak(text);
   call.stepIndex++;
@@ -1218,7 +1369,7 @@ function advanceScript(){
 }
 
 function finishScript(){
-  document.getElementById('transcriptControls').innerHTML = '<p style="color:var(--green); font-weight:700; font-size:13px;">'+icon('check',14)+' Script complete. End the call when you\'re ready.</p>';
+  document.getElementById('transcriptControls').innerHTML = '<p style="color:var(--green); font-weight:700; font-size:13px;">'+icon('check',14)+' The conversation has ended. Please end the call.</p>';
 }
 
 function renderTranscriptControls(){
@@ -1228,7 +1379,7 @@ function renderTranscriptControls(){
 
   if(call.stepIndex >= call.scenario.script.length){
     c.innerHTML = '<div class="call-steps">'+stepPipsHTML('done')+'</div>'+recHtml+
-      '<p style="color:var(--green); font-weight:700; font-size:13px; margin-left:auto;">'+icon('check',14)+' Script complete.</p>';
+      '<p style="color:var(--green); font-weight:700; font-size:13px; margin-left:auto;">'+icon('check',14)+' The conversation has ended. Please end the call.</p>';
     return;
   }
   const next = currentScriptLine();
@@ -1509,8 +1660,8 @@ function toggleRecipient(username){
 async function submitForReview(){
   const p = pendingSubmission;
   const confirmBtn = document.getElementById('confirmSubmitBtn');
-  confirmBtn.disabled = true;
-  confirmBtn.textContent = 'Uploading…';
+  if(confirmBtn.disabled) return;
+  setButtonLoading(confirmBtn, 'Uploading…');
 
   try{
     let audioBase64 = null, audioMime = null;
@@ -1540,8 +1691,7 @@ async function submitForReview(){
     showView('trainee-progress');
   }catch(err){
     toast('Submission failed: ' + (err && err.message ? err.message : err), 'error');
-    confirmBtn.disabled = false;
-    confirmBtn.textContent = 'Confirm & Submit';
+    clearButtonLoading(confirmBtn);
   }
 }
 
@@ -1638,7 +1788,10 @@ function mySubmissionDetailHTML(s){
   return '<div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">'+
     (s.audioFileId ? '<label class="field-label">Your recording</label><audio id="audio-'+s.id+'" controls></audio><div id="audioLoad-'+s.id+'" style="font-size:11.5px; color:var(--muted); margin-top:6px;">Loading recording…</div>' : '<div style="font-size:12.5px; color:var(--muted);">No recording was submitted for this attempt.</div>')+
     (s.transcript ? '<label class="field-label" style="margin-top:14px;">Auto-transcribed speech</label><div class="transcript-block">'+escapeHtml(s.transcript)+'</div>' : '')+
-    (s.status!=='pending' && s.feedback ? '<div style="margin-top:12px; font-size:12.5px; background:var(--bg); padding:10px 12px; border-radius:8px;"><b>Reviewer feedback:</b> '+escapeHtml(s.feedback)+'</div>' : '')+
+    (s.status!=='pending' && (s.feedback || s.reviewedByName) ? '<div style="margin-top:12px; font-size:12.5px; background:var(--bg); padding:10px 12px; border-radius:8px;">'+
+      (s.feedback ? '<b>Reviewer feedback:</b> '+escapeHtml(s.feedback) : '<span style="color:var(--muted);">No written feedback was left for this attempt.</span>')+
+      (s.reviewedByName ? '<div style="margin-top:6px; color:var(--muted); font-weight:600;">Reviewed by '+escapeHtml(s.reviewedByName)+'</div>' : '')+
+    '</div>' : '')+
   '</div>';
 }
 
@@ -1700,7 +1853,16 @@ function reviewPanelHTML(s){
     return '<div class="checklist-item"><span>'+(c.done?icon('check',14):icon('x',14))+'</span><span>'+escapeHtml(c.item)+' <span style="color:var(--muted-2); font-size:11px;">(self-reported)</span></span></div>';
   }).join('');
   const scores = [1,2,3,4,5];
+  const recipientNames = (s.recipients||[]).map(function(u){
+    const match = teamApprovers.find(function(a){ return a.Username===u; });
+    return match ? match.Name : u;
+  });
   return '<div class="review-panel">'+
+    '<div class="badges-row" style="margin-bottom:12px;">'+
+      '<span class="badge badge-category">'+(s.visibility==='Private'?icon('user',11):icon('users',11))+' '+escapeHtml(s.visibility||'Public')+'</span>'+
+      (s.visibility==='Private' && recipientNames.length ? '<span class="badge badge-hidden">Visible to: '+escapeHtml(recipientNames.join(', '))+'</span>' : '')+
+      (s.reviewedByName ? '<span class="badge badge-approved">Reviewed by '+escapeHtml(s.reviewedByName)+'</span>' : '')+
+    '</div>'+
     (s.audioFileId ? '<audio id="audio-'+s.id+'" controls></audio><div id="audioLoad-'+s.id+'" style="font-size:11.5px; color:var(--muted); margin-top:6px;">Loading recording…</div>' : '<div class="hint-banner">'+icon('alert',16)+'<span>No recording was submitted for this attempt.</span></div>')+
     (s.transcript ? '<label class="field-label" style="margin-top:14px;">Auto-transcribed speech</label><div class="transcript-block">'+escapeHtml(s.transcript)+'</div>' : '')+
     (s.notes ? '<div style="margin-top:12px; font-size:13px;"><b>Analyst notes:</b> '+escapeHtml(s.notes)+'</div>' : '')+
@@ -1709,7 +1871,7 @@ function reviewPanelHTML(s){
     '<div class="score-row">'+scores.map(function(n){ return '<div class="score-pill '+(s.score===n?'selected':'')+'" onclick="setScore(\''+s.id+'\','+n+')">'+n+'</div>'; }).join('')+'</div>'+
     '<label class="field-label" style="margin-top:16px;">Feedback for agent</label>'+
     '<textarea id="feedback-'+s.id+'" rows="3" placeholder="What went well, what to improve next time...">'+escapeHtml(s.feedback||'')+'</textarea>'+
-    '<div style="display:flex; gap:10px; margin-top:16px;">'+
+    '<div style="display:flex; gap:10px; margin-top:16px;" id="reviewActions-'+s.id+'">'+
     '<button class="btn btn-danger" onclick="reviewAction(\''+s.id+'\',\'retry\')">'+icon('refresh',14)+' Send Back for Retry</button>'+
     '<button class="btn btn-green" style="margin-left:auto;" onclick="reviewAction(\''+s.id+'\',\'approved\')">'+icon('check',14)+' Approve</button>'+
     '</div></div>';
@@ -1742,6 +1904,11 @@ async function reviewAction(id, status){
   const s = state.submissions.find(function(x){ return x.id===id; });
   const feedbackEl = document.getElementById('feedback-'+id);
   const feedback = feedbackEl ? feedbackEl.value.trim() : (s.feedback||'');
+  const actionsEl = document.getElementById('reviewActions-'+id);
+  if(actionsEl) actionsEl.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
+  const clickedBtn = actionsEl ? actionsEl.querySelector(status==='approved' ? '.btn-green' : '.btn-danger') : null;
+  const originalHtml = clickedBtn ? clickedBtn.innerHTML : '';
+  if(clickedBtn) clickedBtn.innerHTML = '<span class="btn-spinner"></span> Saving…';
   try{
     await authedRun('updateReview', id, { status:status, score:s.score, feedback:feedback });
     s.status = status; s.feedback = feedback;
@@ -1749,7 +1916,11 @@ async function reviewAction(id, status){
     renderQueue();
     renderTraineesTable();
     toast(status==='approved' ? 'Approved. Nice work by '+s.agentName+'.' : 'Sent back to '+s.agentName+' for another attempt.', status==='approved' ? 'success' : 'warn');
-  }catch(err){ toast('Could not save review: '+(err&&err.message?err.message:err), 'error'); }
+  }catch(err){
+    toast('Could not save review: '+(err&&err.message?err.message:err), 'error');
+    if(actionsEl) actionsEl.querySelectorAll('button').forEach(function(b){ b.disabled = false; });
+    if(clickedBtn) clickedBtn.innerHTML = originalHtml;
+  }
 }
 
 /* ============================================================
@@ -1774,32 +1945,56 @@ function renderScriptsTable(){
     }).join('');
 }
 
+let opInFlight = false;
 async function deleteScenarioUI(id){
+  if(opInFlight) return;
   if(!confirm('Delete this scenario? This cannot be undone.')) return;
+  opInFlight = true;
   try{
     await authedRun('deleteScenario', id);
     state.scenarios = await authedRun('getScenarios');
     renderScriptsTable();
     toast('Scenario deleted.', 'default');
   }catch(err){ toast('Could not delete: '+(err&&err.message?err.message:err), 'error'); }
+  opInFlight = false;
 }
 
 let editingScript = null;
 
 function openScriptEditor(id){
-  const existing = id ? state.scenarios.find(function(s){ return s.id===id; }) : null;
-  editingScript = existing ? JSON.parse(JSON.stringify(existing)) : {
-    id:null, title:'', category:'Invoice Confirmation', direction:'outbound', difficulty:'Beginner', team: isAdmin(currentUser) ? '' : currentUser.Team,
-    storeName:'', phone:'', goal:'', checklist:[''], script:[{speaker:'trainee', text:''}]
-  };
-  renderScriptModal();
+  try{
+    const existing = id ? state.scenarios.find(function(s){ return s.id===id; }) : null;
+    if(id && !existing){
+      toast('That scenario could not be found. It may have just been deleted, refreshing the list.', 'warn');
+      authedRun('getScenarios').then(function(list){ state.scenarios = list; renderScriptsTable(); });
+      return;
+    }
+    const base = existing ? JSON.parse(JSON.stringify(existing)) : {};
+    editingScript = {
+      id: base.id || null,
+      title: base.title || '',
+      category: base.category || 'Invoice Confirmation',
+      team: base.team !== undefined ? base.team : (isAdmin(currentUser) ? '' : currentUser.Team),
+      direction: base.direction === 'inbound' ? 'inbound' : 'outbound',
+      difficulty: base.difficulty || 'Beginner',
+      storeName: base.storeName || '',
+      phone: base.phone || '',
+      goal: base.goal || '',
+      checklist: (base.checklist && base.checklist.length) ? base.checklist : [''],
+      script: (base.script && base.script.length) ? base.script : [{speaker:'trainee', text:''}]
+    };
+    renderScriptModal();
+  }catch(err){
+    console.error('openScriptEditor failed', err);
+    toast('Could not open the scenario editor: ' + (err && err.message ? err.message : err), 'error');
+  }
 }
 
 function renderScriptModal(){
   const root = document.getElementById('modal-root');
   const e = editingScript;
   root.innerHTML =
-    '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal">'+
+    '<div class="modal-backdrop"><div class="modal">'+
     '<div class="modal-head"><h3>'+(e.id ? 'Edit scenario' : 'New scenario')+'</h3><button class="close-x" onclick="closeModal()">'+icon('x',14)+'</button></div>'+
     '<div class="modal-body">'+
       '<label class="field-label">Scenario title</label>'+
@@ -1832,7 +2027,7 @@ function renderScriptModal(){
       '<div id="checklistLines"></div>'+
       '<button class="add-line-btn" onclick="addChecklistLine()">'+icon('plus',13)+' Add checklist item</button>'+
     '</div>'+
-    '<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveScenarioUI()">Save scenario</button></div>'+
+    '<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveScenarioBtn" onclick="saveScenarioUI()">Save scenario</button></div>'+
     '</div></div>';
   renderScriptLines();
   renderChecklistLines();
@@ -1840,15 +2035,33 @@ function renderScriptModal(){
 
 function renderScriptLines(){
   document.getElementById('scriptLines').innerHTML = editingScript.script.map(function(line,i){
-    return '<div class="script-row-edit">'+
+    return '<div class="script-row-edit script-row-edit-var">'+
       '<select onchange="editingScript.script['+i+'].speaker=this.value">'+
         '<option value="trainee" '+(line.speaker==='trainee'?'selected':'')+'>Analyst</option>'+
         '<option value="store" '+(line.speaker==='store'?'selected':'')+'>Store</option></select>'+
-      '<input type="text" value="'+escapeAttr(line.text)+'" placeholder="Use {name} to insert the agent\'s name" oninput="editingScript.script['+i+'].text=this.value">'+
+      '<input type="text" id="script-line-'+i+'" value="'+escapeAttr(line.text)+'" placeholder="What should be said here?" oninput="editingScript.script['+i+'].text=this.value">'+
+      '<button type="button" class="btn btn-outline btn-sm" title="Insert the analyst\'s username" onclick="insertVariableIntoLine('+i+')">'+icon('user',12)+' Username</button>'+
       '<button class="mini-x" onclick="removeScriptLine('+i+')">'+icon('x',14)+'</button></div>';
   }).join('');
 }
-function addScriptLine(){ editingScript.script.push({speaker:'trainee', text:''}); renderScriptLines(); }
+function insertVariableIntoLine(i){
+  const input = document.getElementById('script-line-'+i);
+  const token = '{name}';
+  const start = input.selectionStart !== null && input.selectionStart !== undefined ? input.selectionStart : input.value.length;
+  const end = input.selectionEnd !== null && input.selectionEnd !== undefined ? input.selectionEnd : input.value.length;
+  const newValue = input.value.slice(0, start) + token + input.value.slice(end);
+  input.value = newValue;
+  editingScript.script[i].text = newValue;
+  input.focus();
+  const caret = start + token.length;
+  input.setSelectionRange(caret, caret);
+}
+function addScriptLine(){
+  const last = editingScript.script[editingScript.script.length - 1];
+  const nextSpeaker = last ? (last.speaker === 'trainee' ? 'store' : 'trainee') : 'trainee';
+  editingScript.script.push({speaker:nextSpeaker, text:''});
+  renderScriptLines();
+}
 function removeScriptLine(i){ editingScript.script.splice(i,1); renderScriptLines(); }
 
 function renderChecklistLines(){
@@ -1875,16 +2088,35 @@ async function saveScenarioUI(){
   editingScript.checklist = editingScript.checklist.filter(function(c){ return c.trim(); });
   editingScript.script = editingScript.script.filter(function(l){ return l.text.trim(); });
 
-  if(!editingScript.title || !editingScript.storeName || !editingScript.script.length){
-    toast('Please add a title, store name, and at least one script line.', 'warn'); return;
+  const missing = [];
+  if(!editingScript.title) missing.push('a title');
+  if(!editingScript.storeName) missing.push('a store name');
+  if(!editingScript.phone) missing.push('a store phone number');
+  if(!editingScript.goal) missing.push('a goal');
+  if(editingScript.script.length < 2) missing.push('at least two dialogue lines');
+  else {
+    const hasAnalyst = editingScript.script.some(function(l){ return l.speaker==='trainee'; });
+    const hasStore = editingScript.script.some(function(l){ return l.speaker==='store'; });
+    if(!hasAnalyst || !hasStore) missing.push('at least one Analyst line and one Store line');
   }
+  if(!editingScript.checklist.length) missing.push('at least one checklist item');
+  if(missing.length){
+    toast('This scenario needs: ' + missing.join(', ') + '.', 'warn');
+    return;
+  }
+  const saveBtn = document.getElementById('saveScenarioBtn');
+  if(saveBtn && saveBtn.disabled) return;
+  setButtonLoading(saveBtn, 'Saving…');
   try{
     await authedRun('saveScenario', editingScript);
     state.scenarios = await authedRun('getScenarios');
     toast(editingScript.id ? 'Scenario updated.' : 'New scenario created.', 'success');
     closeModal();
     renderScriptsTable();
-  }catch(err){ toast('Could not save: '+(err&&err.message?err.message:err), 'error'); }
+  }catch(err){
+    toast('Could not save: '+(err&&err.message?err.message:err), 'error');
+    clearButtonLoading(saveBtn);
+  }
 }
 
 /* ============================================================
@@ -1910,11 +2142,16 @@ async function renderRosterTable(){
 }
 
 async function deleteUserUI(username){
+  if(opInFlight) return;
   if(username === currentUser.Username){ toast('You can\'t remove your own account while logged in.', 'warn'); return; }
   if(!confirm('Remove this user? They will no longer be able to sign in.')) return;
-  await authedRun('deleteUser', username);
-  renderRosterTable();
-  toast('User removed.', 'default');
+  opInFlight = true;
+  try{
+    await authedRun('deleteUser', username);
+    renderRosterTable();
+    toast('User removed.', 'default');
+  }catch(err){ toast('Could not remove user: '+(err&&err.message?err.message:err), 'error'); }
+  opInFlight = false;
 }
 
 let editingUser = null;
@@ -1924,7 +2161,7 @@ function openUserEditor(username){
   editingUser.originalUsername = existing ? existing.Username : '';
   const root = document.getElementById('modal-root');
   root.innerHTML =
-    '<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal" style="max-width:480px;">'+
+    '<div class="modal-backdrop"><div class="modal" style="max-width:480px;">'+
     '<div class="modal-head"><h3>'+(existing ? 'Edit user' : 'Add user')+'</h3><button class="close-x" onclick="closeModal()">'+icon('x',14)+'</button></div>'+
     '<div class="modal-body">'+
       '<div class="grid grid-2">'+
@@ -1944,7 +2181,7 @@ function openUserEditor(username){
         '<div><label class="field-label">Profile image URL</label><input type="text" id="u-image" value="'+escapeAttr(editingUser.Image)+'"></div>'+
       '</div>'+
     '</div>'+
-    '<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveUserUI()">Save user</button></div>'+
+    '<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveUserBtn" onclick="saveUserUI()">Save user</button></div>'+
     '</div></div>';
 }
 
@@ -1963,12 +2200,18 @@ async function saveUserUI(){
   if(!payload.Username || !payload.Name || !payload.Password){
     toast('Username, Name, and Password are required.', 'warn'); return;
   }
+  const saveBtn = document.getElementById('saveUserBtn');
+  if(saveBtn && saveBtn.disabled) return;
+  setButtonLoading(saveBtn, 'Saving…');
   try{
     await authedRun('saveUser', payload);
     closeModal();
     await renderRosterTable();
     toast(payload.originalUsername ? 'User updated.' : 'User added.', 'success');
-  }catch(err){ toast('Could not save user: '+(err&&err.message?err.message:err), 'error'); }
+  }catch(err){
+    toast('Could not save user: '+(err&&err.message?err.message:err), 'error');
+    clearButtonLoading(saveBtn);
+  }
 }
 
 /* ============================================================
@@ -2016,11 +2259,15 @@ async function saveBrandingSettings(){
     PRIMARY_COLOR: document.getElementById('set-primaryColor').value.trim(),
     ACCENT_COLOR: document.getElementById('set-accentColor').value.trim()
   };
+  const saveBtn = document.getElementById('saveSettingsBtn');
+  if(saveBtn && saveBtn.disabled) return;
+  setButtonLoading(saveBtn, 'Saving…');
   try{
     settings = await authedRun('saveSettings', updated);
     applyBranding(settings);
     toast('Settings saved.', 'success');
   }catch(err){ toast('Could not save settings: '+(err&&err.message?err.message:err), 'error'); }
+  clearButtonLoading(saveBtn);
 }
 
 init();
