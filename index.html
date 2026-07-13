@@ -56,43 +56,43 @@
   .sidebar{width:256px; flex:none; background:linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); display:none; flex-direction:column; position:sticky; top:0; height:100vh; z-index:60; transition:width .18s ease; box-shadow:2px 0 12px rgba(7,55,99,.12);}
   .sidebar.visible{display:flex;}
 
-  .sidebar-brand{padding:18px 16px 16px; border-bottom:1px solid rgba(255,255,255,.12);}
-  .sidebar-brand-row{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px;}
-  .sidebar-logo-img{height:30px; width:auto; max-width:150px; object-fit:contain; flex:none;}
+  .sidebar-brand{padding:18px 16px; border-bottom:1px solid rgba(255,255,255,.12);}
+  .sidebar-brand-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .sidebar-logo-img{height:34px; width:auto; max-width:170px; object-fit:contain; flex:none;}
   .sidebar-collapse-btn{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); color:#D7E3F1; width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;}
   .sidebar-collapse-btn:hover{background:rgba(255,255,255,.2); color:#fff;}
-  .sidebar-brand .brand-text{min-width:0; width:100%;}
-  .sidebar-brand .brand-text b{color:#fff; font-size:15px; display:block; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .sidebar-brand .brand-text span{color:#A9BCD3; font-size:10.5px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top:2px;}
 
-  .sidebar-nav{flex:1; overflow-y:auto; overflow-x:hidden; padding:16px 12px;}
+  .sidebar-nav{flex:1; overflow-y:auto; overflow-x:hidden; padding:16px 12px; display:flex; flex-direction:column;}
   .sidebar-nav .nav-section-label{font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#7E93B3; padding:4px 12px 8px;}
+  .sidebar-nav .nav-spacer{flex:1;}
+  .sidebar-nav .nav-divider{height:1px; background:rgba(255,255,255,.12); margin:8px 4px 12px;}
   .sidebar-nav button{width:100%; display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; border:none; border-left:3px solid transparent; background:transparent; color:#B9C9DC; font-size:13.5px; font-weight:600; margin-bottom:4px; text-align:left; transition:.15s; white-space:nowrap; overflow:hidden;}
   .sidebar-nav button svg{flex:none;}
   .sidebar-nav button:hover:not(.active){background:rgba(255,255,255,.08); color:#fff;}
   .sidebar-nav button.active{background:rgba(255,255,255,.14); color:#fff; border-left-color:var(--accent);}
+  .sidebar-nav button.signout-nav-btn{color:#F3B8AE;}
+  .sidebar-nav button.signout-nav-btn:hover{background:rgba(225,68,45,.18); color:#fff;}
 
-  .sidebar-footer{border-top:1px solid rgba(255,255,255,.12); padding:14px 16px; display:flex; align-items:center; gap:10px;}
-  .user-chip{display:flex; align-items:center; gap:9px; flex:1; min-width:0; color:#fff; font-size:13px; font-weight:700; background:transparent; border:none; padding:6px; border-radius:9px; transition:.15s; text-align:left;}
-  .user-chip:hover{background:rgba(255,255,255,.08);}
-  .user-chip .who{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .user-chip .who small{display:block; color:#A9BCD3; font-weight:500; font-size:10.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .avatar-mini{width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; overflow:hidden; flex:none;}
+  /* Top-right floating profile + logout, independent of the sidebar */
+  .top-right-bar{position:fixed; top:16px; right:20px; z-index:70; display:none; align-items:center; gap:8px;}
+  .top-right-bar.visible{display:flex;}
+  .user-chip-mini{display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow); border-radius:999px; padding:5px 14px 5px 5px; color:var(--text); font-size:13px; font-weight:700; max-width:220px; transition:.15s;}
+  .user-chip-mini:hover{box-shadow:var(--shadow-lg); border-color:var(--primary-tint);}
+  .user-chip-mini .who{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left;}
+  .user-chip-mini .who small{display:block; color:var(--muted); font-weight:500; font-size:10.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .logout-icon-btn{background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow); color:var(--muted); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;}
+  .logout-icon-btn:hover{background:var(--red); color:#fff; border-color:var(--red);}
+
+  .avatar-mini{width:30px; height:30px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; overflow:hidden; flex:none;}
   .avatar-mini img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
-  .logout-btn{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#B9C9DC; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;}
-  .logout-btn:hover{background:var(--red); color:#fff; border-color:var(--red);}
 
   /* Collapsed (icon-only) sidebar, desktop only */
   .sidebar.collapsed{width:76px;}
   .sidebar.collapsed .sidebar-brand-row{justify-content:center;}
-  .sidebar.collapsed .sidebar-brand-row .sidebar-logo-img{display:none;}
-  .sidebar.collapsed .brand-text{display:none;}
+  .sidebar.collapsed .sidebar-logo-img{display:none;}
   .sidebar.collapsed .sidebar-nav{padding:16px 10px;}
   .sidebar.collapsed .sidebar-nav button{justify-content:center; padding:12px 0; gap:0;}
-  .sidebar.collapsed .sidebar-nav button span.btn-label{display:none;}
-  .sidebar.collapsed .sidebar-footer{flex-direction:column; padding:14px 8px;}
-  .sidebar.collapsed .user-chip{justify-content:center; padding:6px 0;}
-  .sidebar.collapsed .user-chip .who{display:none;}
+  .sidebar.collapsed .sidebar-nav button span.btn-label{display:none; width:0;}
 
   .mobile-topbar{display:none; align-items:center; justify-content:space-between; background:var(--primary); padding:10px 16px; position:sticky; top:0; z-index:55;}
   .mobile-topbar .brand-text b{color:#fff; font-size:14px;}
@@ -107,13 +107,12 @@
     .sidebar.visible.open{transform:translateX(0);}
     .sidebar.collapsed{width:256px;}
     .sidebar.collapsed .sidebar-brand-row{justify-content:space-between;}
-    .sidebar.collapsed .sidebar-brand-row .sidebar-logo-img{display:block;}
-    .sidebar.collapsed .brand-text{display:block;}
+    .sidebar.collapsed .sidebar-logo-img{display:block;}
     .sidebar.collapsed .sidebar-nav button{justify-content:flex-start; padding:11px 14px; gap:12px;}
-    .sidebar.collapsed .sidebar-nav button span.btn-label{display:inline;}
-    .sidebar.collapsed .sidebar-footer{flex-direction:row; padding:14px 16px;}
-    .sidebar.collapsed .user-chip .who{display:block;}
-    .sidebar.collapsed .user-chip{justify-content:flex-start;}
+    .sidebar.collapsed .sidebar-nav button span.btn-label{display:inline; width:auto;}
+    .sidebar-collapse-btn{display:none;} /* collapse is a desktop-only affordance */
+    .top-right-bar{top:66px; right:12px;}
+    .user-chip-mini .who small{display:none;}
   }
 
   main{max-width:1200px; margin:0 auto; padding:26px 24px 60px; width:100%; flex:1 0 auto;}
@@ -385,17 +384,14 @@
         <img id="brandLogo" class="sidebar-logo-img" src="" alt="Company logo">
         <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Collapse navigation"></button>
       </div>
-      <div class="brand-text">
-        <b id="brandAppName">Call Simulator</b>
-        <span id="brandSubtitle">ARETEX · BSS POS Operations</span>
-      </div>
     </div>
     <nav class="sidebar-nav" id="topnav"></nav>
-    <div class="sidebar-footer">
-      <button class="user-chip" id="userChip" onclick="openMyProfileModal()"></button>
-      <button class="logout-btn" id="logoutBtn" onclick="requestLogout()" title="Log out"></button>
-    </div>
   </aside>
+
+  <div class="top-right-bar" id="topRightBar">
+    <button class="user-chip-mini" id="userChipMini" onclick="openMyProfileModal()"></button>
+    <button class="logout-icon-btn" id="logoutIconBtn" onclick="requestLogout()" title="Log out"></button>
+  </div>
 
   <div class="app-content-col">
 
@@ -694,7 +690,7 @@ function icon(name, size){ size = size || 16; return '<svg width="'+size+'" heig
  *
  * To enable the external-hosting path, paste your deployed /exec URL below.
  */
-const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbydagodmHrP3GFk52zAEfMGtgrLkRQWcOVU-3pbGIbigGEwxHh8ZR9J8lIQVpJE2EHU/exec';
+const DEPLOYED_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbydagodmHrP3GFk52zAEfMGtgrLkRQWcOVU-3pbGIbigGEwxHh8ZR9J8lIQVpJE2EHU/exec';
 
 function usingAppsScriptBridge_(){
   return (typeof google !== 'undefined' && !!google.script && !!google.script.run);
@@ -705,9 +701,12 @@ function gsRun(fnName){
 
   if(usingAppsScriptBridge_()){
     return new Promise(function(resolve, reject){
-      google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(function(err){ reject(err); })[fnName].apply(null, args);
+      const proxy = google.script.run.withSuccessHandler(resolve).withFailureHandler(function(err){ reject(err); });
+      if(typeof proxy[fnName] !== 'function'){
+        reject(new Error('The server does not recognise "'+fnName+'" yet. This usually means a newer Code.gs was uploaded but not redeployed: open Apps Script, Deploy > Manage deployments > Edit (pencil) > Version: New version > Deploy.'));
+        return;
+      }
+      proxy[fnName].apply(null, args);
     });
   }
 
@@ -806,13 +805,13 @@ function applyBranding(s){
   document.documentElement.style.setProperty('--primary', s.PRIMARY_COLOR || '#073763');
   document.documentElement.style.setProperty('--accent', s.ACCENT_COLOR || '#FF9900');
   document.title = (s.APP_NAME || 'Call Simulator') + ' · ' + (s.COMPANY_NAME || 'ARETEX');
-  document.getElementById('brandAppName').textContent = s.APP_NAME || 'Call Simulator';
-  document.getElementById('brandSubtitle').textContent = (s.COMPANY_NAME || 'ARETEX') + ' · ' + (s.TEAM_NAME || 'BSS POS Operations');
-  document.getElementById('brandLogo').src = s.LOGO_URL || '';
-  document.getElementById('loginLogo').src = s.LOGO_URL || '';
-  document.getElementById('mobileBrandAppName').textContent = s.APP_NAME || 'Call Simulator';
-  document.getElementById('mobileBrandLogo').src = s.LOGO_URL || '';
+  setLogoSrc_('brandLogo', s.LOGO_URL);
+  setLogoSrc_('loginLogo', s.LOGO_URL);
+  setLogoSrc_('mobileBrandLogo', s.LOGO_URL);
+  setTextContent_('mobileBrandAppName', s.APP_NAME || 'Call Simulator');
 }
+function setLogoSrc_(id, url){ const el = document.getElementById(id); if(el) el.src = url || ''; }
+function setTextContent_(id, text){ const el = document.getElementById(id); if(el) el.textContent = text; }
 
 function toggleMobileSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
@@ -831,7 +830,7 @@ function toggleSidebarCollapse(){
 }
 
 function renderStaticLabels(){
-  document.getElementById('logoutBtn').innerHTML = icon('logout',15);
+  document.getElementById('logoutIconBtn').innerHTML = icon('logout',16);
   document.getElementById('hamburgerBtn').innerHTML = icon('menu',18);
   document.getElementById('sidebarCollapseBtn').innerHTML = icon('chevronLeft',15);
   document.getElementById('backToScenariosBtn').innerHTML = icon('arrowLeft',15) + ' Back to scenarios';
@@ -930,6 +929,7 @@ async function afterLogin(){
   renderUserChip();
   document.getElementById('sidebar').classList.add('visible');
   document.getElementById('mobileTopbar').classList.add('visible');
+  document.getElementById('topRightBar').classList.add('visible');
   showView(isApproverOrAdmin(currentUser) ? 'admin' : 'trainee-home');
   toast('Welcome back, ' + currentUser.Name + '.', 'success');
 }
@@ -957,6 +957,7 @@ function logout(){
   sessionToken = null;
   document.getElementById('sidebar').classList.remove('visible','open');
   document.getElementById('mobileTopbar').classList.remove('visible');
+  document.getElementById('topRightBar').classList.remove('visible');
   document.getElementById('sidebarOverlay').classList.remove('visible');
   document.getElementById('topnav').innerHTML = '';
   showView('login');
@@ -967,16 +968,17 @@ function logout(){
    ============================================================ */
 function renderTopnav(){
   const nav = document.getElementById('topnav');
-  const practiceBtn = '<button data-v="trainee-home" onclick="showView(\'trainee-home\')">'+icon('phone',13)+' Practice</button>';
-  const progressBtn = '<button data-v="trainee-progress" onclick="showView(\'trainee-progress\')">'+icon('user',13)+' My Progress</button>';
-  const dashboardBtn = '<button data-v="admin" onclick="showView(\'admin\')">'+icon('sliders',13)+' Dashboard</button>';
-  nav.innerHTML = isApproverOrAdmin(currentUser)
+  const practiceBtn = '<button data-v="trainee-home" onclick="showView(\'trainee-home\')" title="Practice">'+icon('phone',15)+'<span class="btn-label">Practice</span></button>';
+  const progressBtn = '<button data-v="trainee-progress" onclick="showView(\'trainee-progress\')" title="My Progress">'+icon('user',15)+'<span class="btn-label">My Progress</span></button>';
+  const dashboardBtn = '<button data-v="admin" onclick="showView(\'admin\')" title="Dashboard">'+icon('sliders',15)+'<span class="btn-label">Dashboard</span></button>';
+  const signOutBtn = '<div class="nav-spacer"></div><div class="nav-divider"></div><button class="signout-nav-btn" onclick="requestLogout()" title="Sign Out">'+icon('logout',15)+'<span class="btn-label">Sign Out</span></button>';
+  nav.innerHTML = (isApproverOrAdmin(currentUser)
     ? dashboardBtn + practiceBtn + progressBtn
-    : practiceBtn + progressBtn;
+    : practiceBtn + progressBtn) + signOutBtn;
 }
 
 function renderUserChip(){
-  const chip = document.getElementById('userChip');
+  const chip = document.getElementById('userChipMini');
   const avatarInner = currentUser.Image
     ? '<img src="'+escapeAttr(currentUser.Image)+'" onerror="this.parentElement.textContent=\''+initials(currentUser.Name)+'\';">'
     : initials(currentUser.Name);
@@ -1135,7 +1137,7 @@ function escapeAttr(str){ return String(str===null||str===undefined?'':str).repl
    SCENARIO CARDS
    ============================================================ */
 function scenarioCardHTML(s){
-  const diffClass = 'badge-'+s.difficulty.toLowerCase();
+  const diffClass = 'badge-'+String(s.difficulty||'beginner').toLowerCase();
   const dirClass = 'badge-'+s.direction;
   return (
     '<div class="card scenario-card" onclick="openCall(\''+s.id+'\')">'+
@@ -1164,7 +1166,20 @@ function emptyState(msg, iconName){
    CALL SIMULATOR
    ============================================================ */
 function openCall(scenarioId){
-  const scenario = state.scenarios.find(function(s){ return s.id===scenarioId; });
+  try{
+    const scenario = state.scenarios.find(function(s){ return s.id===scenarioId; });
+    if(!scenario){
+      toast('That scenario could not be loaded. Refreshing the list.', 'warn');
+      authedRun('getScenarios').then(function(list){ state.scenarios = list; renderScenarios(); });
+      return;
+    }
+    openCallInner_(scenario);
+  }catch(err){
+    console.error('openCall failed', err);
+    toast('Could not start this scenario: ' + (err && err.message ? err.message : err), 'error');
+  }
+}
+function openCallInner_(scenario){
   call = { scenario:scenario, stepIndex:0, seconds:0, recordedURL:null, recordedBlob:null, muted:false, speaker:false, connected:false, mode:'Easy', hideLinesEverOn:false, speechTranscript:'' };
   hideLines = false;
   document.getElementById('callInfoPanel').style.display = 'none';
@@ -1270,19 +1285,24 @@ function applyModeDefaults(mode){
 }
 
 function beginCall(){
-  const scenario = call.scenario;
-  document.getElementById('callInfoPanel').style.display = 'block';
-  document.getElementById('preCallActions').style.display = 'none';
-  if(scenario.direction === 'outbound'){
-    document.getElementById('phoneStatus').textContent = 'Dialing…';
-    document.getElementById('phoneAvatar').classList.add('ringing');
-    beep(520,120,0); beep(520,120,500); beep(520,120,1000);
-    setTimeout(connectCall, 1600);
-  } else {
-    document.getElementById('phoneStatus').textContent = 'Incoming call…';
-    document.getElementById('phoneAvatar').classList.add('ringing');
-    document.getElementById('acceptDeclineWrap').style.display = 'block';
-    beep(660,150,0); beep(660,150,600); beep(660,150,1200); beep(660,150,1800);
+  try{
+    const scenario = call.scenario;
+    document.getElementById('callInfoPanel').style.display = 'block';
+    document.getElementById('preCallActions').style.display = 'none';
+    if(scenario.direction === 'outbound'){
+      document.getElementById('phoneStatus').textContent = 'Dialing…';
+      document.getElementById('phoneAvatar').classList.add('ringing');
+      beep(520,120,0); beep(520,120,500); beep(520,120,1000);
+      setTimeout(connectCall, 1600);
+    } else {
+      document.getElementById('phoneStatus').textContent = 'Incoming call…';
+      document.getElementById('phoneAvatar').classList.add('ringing');
+      document.getElementById('acceptDeclineWrap').style.display = 'block';
+      beep(660,150,0); beep(660,150,600); beep(660,150,1200); beep(660,150,1800);
+    }
+  }catch(err){
+    console.error('beginCall failed', err);
+    toast('Could not start the call: ' + (err && err.message ? err.message : err), 'error');
   }
 }
 function acceptInbound(){ document.getElementById('acceptDeclineWrap').style.display = 'none'; connectCall(); }
@@ -1938,7 +1958,7 @@ function renderScriptsTable(){
         (showTeam?'<td>'+escapeHtml(s.team||'All teams')+'</td>':'')+
         '<td><span class="badge badge-category">'+escapeHtml(s.category||'General')+'</span></td>'+
         '<td><span class="badge badge-'+s.direction+'">'+s.direction+'</span></td>'+
-        '<td><span class="badge badge-'+s.difficulty.toLowerCase()+'">'+s.difficulty+'</span></td>'+
+        '<td><span class="badge badge-'+String(s.difficulty||'beginner').toLowerCase()+'">'+escapeHtml(s.difficulty||'Beginner')+'</span></td>'+
         '<td>'+s.script.length+' lines</td>'+
         '<td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="openScriptEditor(\''+s.id+'\')">Edit</button> '+
         '<button class="btn btn-ghost btn-sm" onclick="deleteScenarioUI(\''+s.id+'\')">Delete</button></td></tr>';
@@ -2085,8 +2105,8 @@ async function saveScenarioUI(){
   editingScript.direction = document.getElementById('edit-direction').value;
   editingScript.difficulty = document.getElementById('edit-difficulty').value;
   editingScript.goal = document.getElementById('edit-goal').value.trim();
-  editingScript.checklist = editingScript.checklist.filter(function(c){ return c.trim(); });
-  editingScript.script = editingScript.script.filter(function(l){ return l.text.trim(); });
+  editingScript.checklist = editingScript.checklist.filter(function(c){ return String(c||'').trim(); });
+  editingScript.script = editingScript.script.filter(function(l){ return String(l.text||'').trim(); });
 
   const missing = [];
   if(!editingScript.title) missing.push('a title');
