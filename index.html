@@ -2061,7 +2061,7 @@ function reviewPanelHTML(s){
     '<label class="field-label" style="margin-top:16px;">Self-reported checklist</label>'+checklistHtml+
     '<label class="field-label" style="margin-top:16px;">Score</label>'+
     '<div class="score-row">'+scores.map(function(n){ return '<div class="score-pill '+(s.score===n?'selected':'')+'" onclick="setScore(\''+s.id+'\','+n+')">'+n+'</div>'; }).join('')+'</div>'+
-    '<label class="field-label" style="margin-top:16px;">Feedback for agent</label>'+
+    '<label class="field-label" style="margin-top:16px;">Feedback for user</label>'+
     '<textarea id="feedback-'+s.id+'" rows="3" placeholder="What went well, what to improve next time...">'+escapeHtml(s.feedback||'')+'</textarea>'+
     '<div style="display:flex; gap:10px; margin-top:16px;" id="reviewActions-'+s.id+'">'+
     '<button class="btn btn-danger" onclick="reviewAction(\''+s.id+'\',\'retry\')">'+icon('refresh',14)+' Send Back for Retry</button>'+
