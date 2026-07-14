@@ -292,6 +292,9 @@
   .toast.warn{background:var(--amber);}
   .toast.error{background:var(--red);}
   @keyframes toastIn{from{opacity:0; transform:translateX(24px);} to{opacity:1; transform:none;}}
+  .chart-tooltip{position:fixed; z-index:998; display:none; background:var(--navy,#152238); background:var(--primary); color:#fff; font-size:11.5px; font-weight:600; padding:7px 11px; border-radius:8px; pointer-events:none; box-shadow:var(--shadow-lg); white-space:nowrap; transform:translate(-50%, -120%);}
+  .chart-tooltip.visible{display:block;}
+  .chart-hit{fill:transparent; cursor:pointer;}
 
   .stat-card{padding:19px; text-align:center;}
   .stat-num{font-size:27px; color:var(--primary); font-weight:800;}
@@ -365,6 +368,7 @@
 
 <div id="appLoading"><div class="spinner"></div><span>Loading Call Simulator…</span></div>
 <div id="toast-container"></div>
+<div id="chartTooltip" class="chart-tooltip"></div>
 
 <div id="appRoot" style="display:none;">
 
@@ -418,6 +422,19 @@
       <div class="eyebrow">Analyst workspace</div>
       <h1>Select a call scenario</h1>
       <p>Each scenario shows exactly what the store expects to hear. Review it, rehearse it, then run the simulated call.</p>
+    </div>
+
+    <div class="card pad" style="margin-bottom:20px;">
+      <div class="grid grid-3">
+        <input type="text" id="scenarioSearch" placeholder="Search by store, category, or title…" oninput="renderScenarios()">
+        <select id="scenarioCategoryFilter" onchange="renderScenarios()"><option value="">All categories</option></select>
+        <select id="scenarioDifficultyFilter" onchange="renderScenarios()">
+          <option value="">All difficulties</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
     </div>
 
     <div class="section-title"><h3>Outbound calls: you call the store</h3><div class="line"></div></div>
@@ -546,6 +563,15 @@
       <div class="competency-levels"><span>Foundational</span><span>Proficient</span><span>Advanced</span></div>
     </div>
 
+    <div class="grid grid-2" style="margin-top:18px; align-items:start;">
+      <div class="card pad">
+        <h4 style="font-size:13px; color:var(--primary); text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px;">Strengths by category</h4>
+        <p style="font-size:11.5px; color:var(--muted); margin-bottom:10px;">Your average score in each scenario category, so you can see where to focus.</p>
+        <div id="categoryBreakdown"></div>
+      </div>
+      <div class="card pad" id="coachingNudgeCard" style="display:flex; align-items:flex-start; gap:12px;"></div>
+    </div>
+
     <div class="section-title"><h3>Your submissions</h3><div class="line"></div></div>
     <div class="card pad" style="margin-bottom:14px;">
       <div class="grid grid-3">
@@ -585,6 +611,10 @@
 
     <div id="admin-queue" class="admin-tab">
       <div class="grid grid-4" id="dashboardKPIs" style="margin-bottom:18px;"></div>
+      <div class="card pad" style="margin-bottom:18px;">
+        <h4 style="font-size:13px; color:var(--primary); text-transform:uppercase; letter-spacing:.03em; margin-bottom:10px;">Submission volume, last 8 weeks</h4>
+        <div id="dashboardTrendChart"></div>
+      </div>
       <div class="card pad" style="margin-bottom:16px;">
         <div class="filter-bar" id="dashboardFilterBar"></div>
       </div>
@@ -649,6 +679,7 @@
    ============================================================ */
 const ICONS = {
   menu: '<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>',
+  star: '<path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.7L12 17.6l-5.9 3.1 1.3-6.7L2.5 9.4l6.6-.8z"/>',
   phone: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>',
   phoneOut: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M15 4h5v5"/><path d="M20 4l-6 6"/>',
   phoneIn: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M20 4l-6 6"/><path d="M14.5 4H20v5.5"/>',
@@ -784,11 +815,14 @@ function clearButtonLoading(btn){
 /* ============================================================
    INIT
    ============================================================ */
+const EXPECTED_BACKEND_VERSION = '2026-07-13.1';
+
 async function init(){
   try{
     settings = await gsRun('getSettings');
     applyBranding(settings);
     renderStaticLabels();
+    checkBackendVersion_(settings);
     document.getElementById('appLoading').style.display = 'none';
     document.getElementById('appRoot').style.display = 'flex';
     showView('login');
@@ -799,6 +833,14 @@ async function init(){
       '<br><br><span style="color:var(--muted);">'+ (err && err.message ? err.message : err) +'</span></div>';
     console.error(err);
   }
+}
+
+function checkBackendVersion_(s){
+  if(!s.BACKEND_VERSION || s.BACKEND_VERSION === EXPECTED_BACKEND_VERSION) return;
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed; top:0; left:0; right:0; z-index:999; background:'+ '#8A5A00' +'; color:#fff; font-size:12.5px; font-weight:600; padding:9px 16px; text-align:center;';
+  banner.innerHTML = 'This app is running an older backend (deployed: '+escapeHtml(s.BACKEND_VERSION)+', expected: '+EXPECTED_BACKEND_VERSION+'). Some fixes may not be live yet. In Apps Script: Deploy &gt; Manage deployments &gt; Edit &gt; New version &gt; Deploy. <button onclick="this.parentElement.remove()" style="margin-left:10px; background:rgba(255,255,255,.2); border:none; color:#fff; border-radius:5px; padding:2px 8px; cursor:pointer;">Dismiss</button>';
+  document.body.prepend(banner);
 }
 
 function applyBranding(s){
@@ -1114,6 +1156,35 @@ function renderDashboardKPIs(){
     '<div class="card stat-card"><div class="stat-num" style="color:var(--amber);">'+pending+'</div><div class="stat-label">Pending review</div></div>'+
     '<div class="card stat-card"><div class="stat-num" style="color:var(--green);">'+approved+'</div><div class="stat-label">Completed review</div></div>'+
     '<div class="card stat-card"><div class="stat-num" style="color:var(--primary);">'+completionRate+'%</div><div class="stat-label">Completion rate</div></div>';
+  renderDashboardTrendChart();
+}
+
+function renderDashboardTrendChart(){
+  const el = document.getElementById('dashboardTrendChart');
+  const now = new Date();
+  const weeks = [];
+  for(let i=7; i>=0; i--){
+    const end = new Date(now); end.setDate(end.getDate() - i*7);
+    const start = new Date(end); start.setDate(start.getDate() - 6);
+    weeks.push({ start:start, end:end, count:0 });
+  }
+  state.submissions.forEach(function(s){
+    const d = new Date(s.timestamp);
+    const w = weeks.find(function(w){ return d >= w.start && d <= w.end; });
+    if(w) w.count++;
+  });
+  const max = Math.max.apply(null, weeks.map(function(w){ return w.count; }).concat([1]));
+  el.innerHTML = '<div style="display:flex; align-items:flex-end; gap:8px; height:110px;">' +
+    weeks.map(function(w){
+      const pct = Math.round((w.count / max) * 100);
+      const label = w.count + ' submission'+(w.count===1?'':'s')+' &middot; ' + w.start.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + '&ndash;' + w.end.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      return '<div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">'+
+        '<div class="chart-hit-bar" style="width:100%; max-width:34px; height:'+Math.max(pct,4)+'%; background:var(--primary); border-radius:5px 5px 0 0; cursor:pointer;" '+
+        'onmouseenter="showChartTooltip(event, \''+label.replace(/'/g,"\\'")+'\')" onmousemove="moveChartTooltip(event)" onmouseleave="hideChartTooltip()"></div>'+
+        '<div style="font-size:9.5px; color:var(--muted-2); margin-top:6px;">'+w.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</div>'+
+      '</div>';
+    }).join('') +
+  '</div>';
 }
 
 function renderAdminTabsVisibility(){
@@ -1139,6 +1210,7 @@ function escapeAttr(str){ return String(str===null||str===undefined?'':str).repl
 function scenarioCardHTML(s){
   const diffClass = 'badge-'+String(s.difficulty||'beginner').toLowerCase();
   const dirClass = 'badge-'+s.direction;
+  const estMinutes = Math.max(1, Math.round((s.script.length * 12) / 60));
   return (
     '<div class="card scenario-card" onclick="openCall(\''+s.id+'\')">'+
       '<div class="scenario-top"><h4>'+escapeHtml(s.title)+'</h4>'+
@@ -1147,16 +1219,34 @@ function scenarioCardHTML(s){
         '<span class="badge '+dirClass+'">'+(s.direction==='outbound'?icon('phoneOut',11)+' Outbound':icon('phoneIn',11)+' Inbound')+'</span>'+
         '<span class="badge '+diffClass+'">'+s.difficulty+'</span>'+
         '<span class="badge badge-category">'+escapeHtml(s.category||'General')+'</span>'+
+        '<span class="badge badge-hidden">~'+estMinutes+' min</span>'+
       '</div>'+
       '<div class="scenario-goal">'+escapeHtml(s.goal)+'</div>'+
       '<button class="btn btn-primary btn-block">'+(s.direction==='outbound'?'Start Call':'Simulate Incoming Call')+' '+icon('chevronRight',14)+'</button>'+
     '</div>');
 }
 function renderScenarios(){
-  const out = state.scenarios.filter(function(s){ return s.direction==='outbound'; });
-  const inb = state.scenarios.filter(function(s){ return s.direction==='inbound'; });
-  document.getElementById('outboundGrid').innerHTML = out.map(scenarioCardHTML).join('') || emptyState('No outbound scenarios yet.');
-  document.getElementById('inboundGrid').innerHTML = inb.map(scenarioCardHTML).join('') || emptyState('No inbound scenarios yet.');
+  const search = (document.getElementById('scenarioSearch').value || '').toLowerCase();
+  const catFilter = document.getElementById('scenarioCategoryFilter').value;
+  const diffFilter = document.getElementById('scenarioDifficultyFilter').value;
+
+  const catSelect = document.getElementById('scenarioCategoryFilter');
+  const cats = Array.from(new Set(state.scenarios.map(function(s){ return s.category; }).filter(Boolean))).sort();
+  if(catSelect.dataset.count != cats.length){
+    catSelect.innerHTML = '<option value="">All categories</option>' + cats.map(function(c){ return '<option value="'+escapeAttr(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
+    catSelect.dataset.count = cats.length;
+    catSelect.value = catFilter;
+  }
+
+  let filtered = state.scenarios;
+  if(search) filtered = filtered.filter(function(s){ return (s.title+' '+s.storeName+' '+s.category).toLowerCase().indexOf(search) > -1; });
+  if(catFilter) filtered = filtered.filter(function(s){ return s.category === catFilter; });
+  if(diffFilter) filtered = filtered.filter(function(s){ return s.difficulty === diffFilter; });
+
+  const out = filtered.filter(function(s){ return s.direction==='outbound'; });
+  const inb = filtered.filter(function(s){ return s.direction==='inbound'; });
+  document.getElementById('outboundGrid').innerHTML = out.map(scenarioCardHTML).join('') || emptyState('No outbound scenarios match your filters.');
+  document.getElementById('inboundGrid').innerHTML = inb.map(scenarioCardHTML).join('') || emptyState('No inbound scenarios match your filters.');
 }
 function emptyState(msg, iconName){
   return '<div class="empty-state"><div class="icon-wrap">'+icon(iconName||'clipboard',30)+'</div>'+msg+'</div>';
@@ -1737,6 +1827,8 @@ function renderTraineeProgress(){
 
   renderStreak(mine);
   renderScoreChart(scored);
+  renderCategoryBreakdown(mine);
+  renderCoachingNudge(mine, scored, approved);
 
   const search = (document.getElementById('progressSearch').value || '').toLowerCase();
   const statusFilter = document.getElementById('progressStatusFilter').value;
@@ -1771,6 +1863,22 @@ function renderStreak(mine){
   cal.innerHTML = cells.join('');
 }
 
+function showChartTooltip(evt, html){
+  const tip = document.getElementById('chartTooltip');
+  tip.innerHTML = html;
+  tip.style.left = evt.clientX + 'px';
+  tip.style.top = evt.clientY + 'px';
+  tip.classList.add('visible');
+}
+function moveChartTooltip(evt){
+  const tip = document.getElementById('chartTooltip');
+  tip.style.left = evt.clientX + 'px';
+  tip.style.top = evt.clientY + 'px';
+}
+function hideChartTooltip(){
+  document.getElementById('chartTooltip').classList.remove('visible');
+}
+
 function renderScoreChart(scored){
   const el = document.getElementById('scoreChart');
   if(!scored.length){ el.innerHTML = '<div style="color:var(--muted); font-size:12.5px; padding:20px 0; text-align:center;">No scored attempts yet.</div>'; return; }
@@ -1778,10 +1886,74 @@ function renderScoreChart(scored){
   const w = 100, h = 46, stepX = points.length>1 ? w/(points.length-1) : 0;
   const coords = points.map(function(p,i){ return [i*stepX, h - (p.score/5)*h]; });
   const path = coords.map(function(c,i){ return (i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1); }).join(' ');
-  const dots = coords.map(function(c,i){ return '<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="2.2" fill="var(--accent)"><title>'+points[i].score+'/5</title></circle>'; }).join('');
+  const dots = coords.map(function(c,i){
+    const label = points[i].score+'/5 &middot; '+escapeHtml(points[i].scenarioTitle||'')+' &middot; '+fmtDate(points[i].timestamp);
+    return '<circle class="chart-hit" cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="6" '+
+      'onmouseenter="showChartTooltip(event, \''+label.replace(/'/g,"\\'")+'\')" onmousemove="moveChartTooltip(event)" onmouseleave="hideChartTooltip()"></circle>'+
+      '<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="2.4" fill="var(--accent)" style="pointer-events:none;"></circle>';
+  }).join('');
   el.innerHTML = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%; height:90px; overflow:visible;">'+
     '<path d="'+path+'" fill="none" stroke="var(--primary)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>'+dots+'</svg>'+
     '<div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted-2); margin-top:4px;"><span>'+fmtDate(points[0].timestamp).split(' ·')[0]+'</span><span>'+fmtDate(points[points.length-1].timestamp).split(' ·')[0]+'</span></div>';
+}
+
+function renderCategoryBreakdown(mine){
+  const el = document.getElementById('categoryBreakdown');
+  const byCategory = {};
+  mine.forEach(function(s){
+    const cat = s.category || 'General';
+    if(!byCategory[cat]) byCategory[cat] = { scores:[], attempts:0 };
+    byCategory[cat].attempts++;
+    if(s.score !== null) byCategory[cat].scores.push(s.score);
+  });
+  const cats = Object.keys(byCategory);
+  if(!cats.length){ el.innerHTML = '<div style="color:var(--muted); font-size:12.5px; padding:10px 0;">Practice a few calls to see your strengths by category.</div>'; return; }
+  el.innerHTML = cats.map(function(cat){
+    const data = byCategory[cat];
+    const avg = data.scores.length ? (data.scores.reduce(function(a,b){return a+b;},0)/data.scores.length) : 0;
+    const pct = Math.round((avg/5)*100);
+    return '<div style="margin-bottom:12px;">'+
+      '<div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px;">'+
+        '<span style="font-weight:700; color:var(--text);">'+escapeHtml(cat)+'</span>'+
+        '<span style="color:var(--muted);">'+(data.scores.length?avg.toFixed(1)+'/5':data.attempts+' attempt'+(data.attempts===1?'':'s')+', not yet scored')+'</span>'+
+      '</div>'+
+      '<div class="competency-bar" style="height:8px;"><div class="competency-fill" style="width:'+pct+'%;"></div></div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderCoachingNudge(mine, scored, approved){
+  const el = document.getElementById('coachingNudgeCard');
+  if(!mine.length){
+    el.innerHTML = iconWrap_('phone') + '<div><b style="color:var(--primary); display:block; margin-bottom:4px;">Ready when you are</b><span style="font-size:12.5px; color:var(--muted);">Pick any scenario on the Practice tab to get started, Easy mode is a great place to begin.</span></div>';
+    return;
+  }
+  const recent = mine.slice().sort(function(a,b){ return new Date(b.timestamp)-new Date(a.timestamp); }).slice(0,5);
+  const recentModes = recent.map(function(s){ return s.practiceMode; });
+  const recentScores = recent.filter(function(s){ return s.score!==null; }).map(function(s){ return s.score; });
+  const recentAvg = recentScores.length ? recentScores.reduce(function(a,b){return a+b;},0)/recentScores.length : null;
+
+  let title, msg;
+  if(recentAvg !== null && recentAvg >= 4 && recentModes.every(function(m){ return m==='Easy'; })){
+    title = 'Time to level up';
+    msg = "You're scoring well on Easy mode. Try Medium or Hard on your next attempt to keep building real confidence.";
+  } else if(recentAvg !== null && recentAvg >= 4.3){
+    title = 'Strong recent scores';
+    msg = 'Your last few reviewed attempts averaged '+recentAvg.toFixed(1)+'/5. Consider trying a Freestyle attempt to test yourself without a script.';
+  } else if(recent[0] && recent[0].status === 'retry'){
+    title = 'One more try';
+    msg = "Your most recent attempt was sent back. Read the reviewer's feedback, then try the same scenario again, repetition is the fastest way to improve.";
+  } else if(recentAvg !== null){
+    title = 'Keep practicing';
+    msg = 'Your recent average is '+recentAvg.toFixed(1)+'/5. Try the same scenario again to build consistency before moving to a harder mode.';
+  } else {
+    title = 'Awaiting your first review';
+    msg = "You've submitted attempts that haven't been scored yet. Keep practicing while you wait, consistency matters more than any single score.";
+  }
+  el.innerHTML = iconWrap_('star') + '<div><b style="color:var(--primary); display:block; margin-bottom:4px;">'+title+'</b><span style="font-size:12.5px; color:var(--muted); line-height:1.6;">'+msg+'</span></div>';
+}
+function iconWrap_(name){
+  return '<div style="width:38px; height:38px; border-radius:10px; background:var(--accent-tint); color:var(--accent-dark); display:flex; align-items:center; justify-content:center; flex:none;">'+icon(name,18)+'</div>';
 }
 
 function mySubmissionCardHTML(s){
