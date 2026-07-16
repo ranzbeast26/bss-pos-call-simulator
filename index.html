@@ -2099,6 +2099,10 @@ async function renderExamples(){
     list.innerHTML = emptyState('Could not load examples: ' + (err && err.message ? err.message : err));
     return;
   }
+  renderExamplesList();
+}
+function renderExamplesList(){
+  const list = document.getElementById('examplesList');
   if(!examplesCache.length){
     list.innerHTML = emptyState('No example calls have been featured yet. Approvers can feature a strong, approved, Public call from the Review Queue.', 'star');
     return;
@@ -2121,7 +2125,7 @@ async function renderExamples(){
 }
 function toggleExample(id){
   expandedExampleId = expandedExampleId === id ? null : id;
-  renderExamples();
+  renderExamplesList();
   if(expandedExampleId) loadAudioForSubmission(expandedExampleId);
 }
 function exampleDetailHTML(s){
