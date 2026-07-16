@@ -516,6 +516,8 @@
       <div class="panel-head"><h4 id="wrapupTitle"></h4></div>
       <div class="wrapup">
         <div id="checklistWrap"></div>
+        <label class="field-label" style="margin-top:16px;">How confident did you feel about that call?</label>
+        <div class="score-row" id="confidenceRow"></div>
         <label class="field-label" style="margin-top:16px;">Notes for the reviewer (optional)</label>
         <textarea id="callNotes" rows="3" placeholder="Anything you want your reviewer to know about this attempt..."></textarea>
         <div id="recordingReview" style="margin-top:16px; display:none;">
@@ -592,6 +594,16 @@
       </div>
     </div>
     <div id="mySubmissionsList"></div>
+  </section>
+
+  <!-- ===================== TEAM EXAMPLES ===================== -->
+  <section class="view" id="view-examples">
+    <div class="page-head">
+      <div class="eyebrow">Learn from your team</div>
+      <h1>Example calls</h1>
+      <p>Approved calls your team lead has flagged as strong examples worth listening to.</p>
+    </div>
+    <div id="examplesList"></div>
   </section>
 
   <!-- ===================== REVIEWER ===================== -->
@@ -680,6 +692,7 @@
 const ICONS = {
   menu: '<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>',
   star: '<path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.7L12 17.6l-5.9 3.1 1.3-6.7L2.5 9.4l6.6-.8z"/>',
+  lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   phone: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>',
   phoneOut: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M15 4h5v5"/><path d="M20 4l-6 6"/>',
   phoneIn: '<path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/><path d="M20 4l-6 6"/><path d="M14.5 4H20v5.5"/>',
@@ -721,7 +734,7 @@ function icon(name, size){ size = size || 16; return '<svg width="'+size+'" heig
  *
  * To enable the external-hosting path, paste your deployed /exec URL below.
  */
-const DEPLOYED_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbydagodmHrP3GFk52zAEfMGtgrLkRQWcOVU-3pbGIbigGEwxHh8ZR9J8lIQVpJE2EHU/exec';
+const DEPLOYED_WEBAPP_URL = 'https://script.google.com/a/macros/aretex.com.au/s/AKfycbwOAdcNHEoR-FLXk1Gky3YYXx9nJIVZSyuxoEOYTrzCVJcuqD2jjsJ5BUb1UsyC6Zqe/exec';
 
 function usingAppsScriptBridge_(){
   return (typeof google !== 'undefined' && !!google.script && !!google.script.run);
@@ -974,7 +987,43 @@ async function afterLogin(){
   document.getElementById('topRightBar').classList.add('visible');
   showView(isApproverOrAdmin(currentUser) ? 'admin' : 'trainee-home');
   toast('Welcome back, ' + currentUser.Name + '.', 'success');
+  if(!isApproverOrAdmin(currentUser) && !hasSeenWalkthrough){
+    hasSeenWalkthrough = true;
+    setTimeout(openWalkthrough, 500);
+  }
 }
+
+let hasSeenWalkthrough = false;
+const WALKTHROUGH_SLIDES = [
+  { icon:'phone', title:'Pick a scenario', body:'The Practice tab has real call scenarios, outbound (you call the store) and inbound (the store calls you). Each one shows the store, category, and difficulty before you start.' },
+  { icon:'sliders', title:'Choose your challenge', body:'Before each call, pick a practice mode: Easy keeps the script visible, Medium and Hard hide it, and Freestyle drops the script entirely so you can improvise. Recording starts automatically, there\'s nothing to press.' },
+  { icon:'star', title:'Track your growth', body:'My Progress shows your streak, score history, and strengths by category. Every reviewed call also shows exactly who reviewed it, so you always know who to ask for more feedback.' }
+];
+let walkthroughStep = 0;
+function openWalkthrough(){
+  walkthroughStep = 0;
+  renderWalkthroughStep();
+}
+function renderWalkthroughStep(){
+  const root = document.getElementById('modal-root');
+  const s = WALKTHROUGH_SLIDES[walkthroughStep];
+  const isLast = walkthroughStep === WALKTHROUGH_SLIDES.length - 1;
+  root.innerHTML =
+    '<div class="modal-backdrop"><div class="modal" style="max-width:420px; text-align:center;">'+
+    '<div class="modal-body" style="padding:32px 26px 24px;">'+
+      '<div style="width:52px; height:52px; border-radius:14px; background:var(--accent-tint); color:var(--accent-dark); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">'+icon(s.icon,26)+'</div>'+
+      '<h3 style="font-size:17px; color:var(--primary); margin-bottom:8px;">'+s.title+'</h3>'+
+      '<p style="font-size:13px; color:var(--muted); line-height:1.6;">'+s.body+'</p>'+
+      '<div style="display:flex; justify-content:center; gap:6px; margin-top:20px;">'+
+        WALKTHROUGH_SLIDES.map(function(x,i){ return '<div style="width:'+(i===walkthroughStep?18:7)+'px; height:7px; border-radius:4px; background:'+(i===walkthroughStep?'var(--accent)':'var(--border)')+'; transition:.2s;"></div>'; }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div class="modal-foot" style="justify-content:space-between;">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Skip</button>'+
+      '<button class="btn btn-primary" onclick="'+(isLast?'closeModal()':'nextWalkthroughStep()')+'">'+(isLast?'Get started':'Next')+'</button>'+
+    '</div></div></div>';
+}
+function nextWalkthroughStep(){ walkthroughStep++; renderWalkthroughStep(); }
 
 function requestLogout(){
   const root = document.getElementById('modal-root');
@@ -1012,11 +1061,11 @@ function renderTopnav(){
   const nav = document.getElementById('topnav');
   const practiceBtn = '<button data-v="trainee-home" onclick="showView(\'trainee-home\')" title="Practice">'+icon('phone',15)+'<span class="btn-label">Practice</span></button>';
   const progressBtn = '<button data-v="trainee-progress" onclick="showView(\'trainee-progress\')" title="My Progress">'+icon('user',15)+'<span class="btn-label">My Progress</span></button>';
+  const examplesBtn = '<button data-v="examples" onclick="showView(\'examples\')" title="Examples">'+icon('star',15)+'<span class="btn-label">Examples</span></button>';
   const dashboardBtn = '<button data-v="admin" onclick="showView(\'admin\')" title="Dashboard">'+icon('sliders',15)+'<span class="btn-label">Dashboard</span></button>';
-  const signOutBtn = '<div class="nav-spacer"></div><div class="nav-divider"></div><button class="signout-nav-btn" onclick="requestLogout()" title="Sign Out">'+icon('logout',15)+'<span class="btn-label">Sign Out</span></button>';
-  nav.innerHTML = (isApproverOrAdmin(currentUser)
-    ? dashboardBtn + practiceBtn + progressBtn
-    : practiceBtn + progressBtn) + signOutBtn;
+  nav.innerHTML = isApproverOrAdmin(currentUser)
+    ? dashboardBtn + practiceBtn + progressBtn + examplesBtn
+    : practiceBtn + progressBtn + examplesBtn;
 }
 
 function renderUserChip(){
@@ -1079,6 +1128,7 @@ function showView(name){
 
   if(name==='trainee-home') renderScenarios();
   if(name==='trainee-progress') renderTraineeProgress();
+  if(name==='examples') renderExamples();
   if(name==='admin'){
     renderAdminTabsVisibility();
     initDashboard();
@@ -1270,13 +1320,14 @@ function openCall(scenarioId){
   }
 }
 function openCallInner_(scenario){
-  call = { scenario:scenario, stepIndex:0, seconds:0, recordedURL:null, recordedBlob:null, muted:false, speaker:false, connected:false, mode:'Easy', hideLinesEverOn:false, speechTranscript:'' };
+  const startMode = scenario.minMode && MODE_ORDER[scenario.minMode] !== undefined ? scenario.minMode : 'Easy';
+  call = { scenario:scenario, stepIndex:0, seconds:0, recordedURL:null, recordedBlob:null, muted:false, speaker:false, connected:false, mode:startMode, hideLinesEverOn:false, speechTranscript:'', lineTranscripts:{}, turnStartTranscriptLength:0 };
   hideLines = false;
   document.getElementById('callInfoPanel').style.display = 'none';
   traineeLineArmed = false;
   document.getElementById('hideSwitch').classList.remove('on');
   renderModePills();
-  applyModeDefaults('Easy');
+  applyModeDefaults(startMode);
   document.getElementById('liveCaption').textContent = '';
   document.getElementById('callEyebrow').textContent = scenario.direction==='outbound' ? 'Outbound simulation' : 'Inbound simulation';
   document.getElementById('callTitle').textContent = scenario.title;
@@ -1350,9 +1401,15 @@ function dialpadCall(){
   beginCall();
 }
 
+const MODE_ORDER = { Easy:0, Medium:1, Hard:2 };
 function renderModePills(){
   const modes = [['Easy','Easy'],['Medium','Medium'],['Hard','Hard'],['Freestyle','Freestyle']];
+  const minMode = call.scenario.minMode;
   document.getElementById('modePills').innerHTML = modes.map(function(m){
+    const isLocked = minMode && MODE_ORDER[m[0]] !== undefined && MODE_ORDER[m[0]] < MODE_ORDER[minMode];
+    if(isLocked){
+      return '<button type="button" class="mode-pill locked" disabled title="This scenario requires at least '+minMode+' mode">'+icon('lock',11)+' '+m[1]+'</button>';
+    }
     return '<button type="button" class="mode-pill '+(call.mode===m[0]?'selected':'')+'" onclick="selectMode(\''+m[0]+'\')">'+m[1]+'</button>';
   }).join('');
 }
@@ -1516,8 +1573,18 @@ function stepPipsHTML(stage){
 }
 
 let traineeLineArmed = false;
-function armSpeakingLine(){ traineeLineArmed = true; renderTranscriptControls(); }
-function finishSpeakingLine(){ traineeLineArmed = false; advanceScript(); }
+function armSpeakingLine(){
+  traineeLineArmed = true;
+  call.turnStartTranscriptLength = (call.speechTranscript || '').length;
+  renderTranscriptControls();
+}
+function finishSpeakingLine(){
+  traineeLineArmed = false;
+  const spoken = (call.speechTranscript || '').slice(call.turnStartTranscriptLength || 0).trim();
+  if(!call.lineTranscripts) call.lineTranscripts = {};
+  call.lineTranscripts[call.stepIndex] = spoken;
+  advanceScript();
+}
 
 function pickMimeType_(){
   const candidates = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
@@ -1659,6 +1726,18 @@ async function toggleRecording(){
   renderTranscriptControls();
 }
 
+function renderConfidenceRow(){
+  const row = document.getElementById('confidenceRow');
+  const labels = ['Not at all','A little','Somewhat','Confident','Very confident'];
+  row.innerHTML = [1,2,3,4,5].map(function(n){
+    return '<div class="score-pill '+(call.confidenceRating===n?'selected':'')+'" title="'+labels[n-1]+'" onclick="setConfidenceRating('+n+')">'+n+'</div>';
+  }).join('');
+}
+function setConfidenceRating(n){
+  call.confidenceRating = n;
+  renderConfidenceRow();
+}
+
 function endCall(){
   clearInterval(timerInterval);
   stopRecordingFlow_();
@@ -1671,6 +1750,9 @@ function endCall(){
   wrap.innerHTML = call.scenario.checklist.map(function(item,i){
     return '<label class="checklist-item"><input type="checkbox" id="chk-'+i+'"><span>'+escapeHtml(item)+'</span></label>';
   }).join('');
+
+  call.confidenceRating = null;
+  renderConfidenceRow();
 
   const reviewBox = document.getElementById('recordingReview');
   if(call.recordedURL){ reviewBox.style.display = 'block'; document.getElementById('playbackAudio').src = call.recordedURL; }
@@ -1709,17 +1791,42 @@ function blobToBase64(blob){
   });
 }
 
+function computeSpeechStats_(){
+  const text = call.speechTranscript || '';
+  const words = text.split(/\s+/).filter(Boolean);
+  const fillerWords = ['um','uh','umm','uhh','erm','er'];
+  let fillerCount = 0;
+  words.forEach(function(w){
+    const clean = w.toLowerCase().replace(/[^a-z']/g,'');
+    if(fillerWords.indexOf(clean) > -1) fillerCount++;
+  });
+  // Catch multi-word fillers like "like" and "you know" only when used as filler-ish repeats; keep it conservative to avoid false positives.
+  const likeMatches = (text.match(/\blike\b/gi) || []).length;
+  if(likeMatches > 2) fillerCount += (likeMatches - 2);
+  const minutes = Math.max(call.seconds / 60, 0.17);
+  const wordsPerMinute = words.length ? Math.round(words.length / minutes) : null;
+  return { fillerCount: words.length ? fillerCount : null, wordsPerMinute: wordsPerMinute };
+}
+
 function openSubmitConfirmation(){
   const checklistResults = call.scenario.checklist.map(function(item,i){
     return { item:item, done: document.getElementById('chk-'+i).checked };
   });
   const notes = document.getElementById('callNotes').value.trim();
 
+  if(call.confidenceRating === null || call.confidenceRating === undefined){
+    if(!confirm('You haven\'t rated how confident you felt about this call. Continue without rating it?')) return;
+  }
   if(!call.recordedBlob){
     if(!confirm('You don\'t have a recording for this attempt. Continue to submit without audio?')) return;
   }
 
-  pendingSubmission = { checklistResults: checklistResults, notes: notes, visibility: 'Public', recipients: teamApprovers.map(function(a){ return a.Username; }) };
+  const stats = computeSpeechStats_();
+  pendingSubmission = {
+    checklistResults: checklistResults, notes: notes, visibility: 'Public',
+    recipients: teamApprovers.map(function(a){ return a.Username; }),
+    fillerCount: stats.fillerCount, wordsPerMinute: stats.wordsPerMinute
+  };
   renderSubmitConfirmationModal();
 }
 
@@ -1735,9 +1842,11 @@ function renderSubmitConfirmationModal(){
         '<button type="button" class="btn '+(p.visibility==='Public'?'btn-navy':'btn-outline')+' btn-sm" onclick="setSubmissionVisibility(\'Public\')">'+icon('users',13)+' Public (team + reviewers)</button>'+
         '<button type="button" class="btn '+(p.visibility==='Private'?'btn-navy':'btn-outline')+' btn-sm" onclick="setSubmissionVisibility(\'Private\')">'+icon('user',13)+' Private (reviewers only)</button>'+
       '</div>'+
-      '<label class="field-label">Recipients</label>'+
-      '<p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Approvers on your team who will see this submission in their Review Queue.</p>'+
-      '<div id="recipientList">'+renderRecipientList()+'</div>'+
+      (p.visibility==='Private' ?
+        '<label class="field-label">Recipients</label>'+
+        '<p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Only these Approvers on your team will be able to see this submission.</p>'+
+        '<div id="recipientList">'+renderRecipientList()+'</div>'
+        : '<div class="hint-banner">'+icon('alert',15)+'<span>Public submissions are visible to your whole team and any Approver automatically, there\'s nothing else to choose.</span></div>')+
     '</div>'+
     '<div class="modal-foot">'+
       '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'+
@@ -1784,6 +1893,10 @@ async function submitForReview(){
       practiceMode: call.mode === 'Freestyle' ? 'Impromptu' : call.mode,
       hideLinesUsed: !!call.hideLinesEverOn,
       transcript: call.speechTranscript || '',
+      lineTranscripts: call.lineTranscripts || {},
+      confidenceRating: call.confidenceRating || null,
+      fillerCount: p.fillerCount,
+      wordsPerMinute: p.wordsPerMinute,
       visibility: p.visibility,
       recipients: p.recipients,
       duration: call.seconds,
@@ -1826,7 +1939,7 @@ function renderTraineeProgress(){
   document.getElementById('competencyFill').style.width = pct+'%';
 
   renderStreak(mine);
-  renderScoreChart(scored);
+  renderScoreChart(mine);
   renderCategoryBreakdown(mine);
   renderCoachingNudge(mine, scored, approved);
 
@@ -1879,21 +1992,36 @@ function hideChartTooltip(){
   document.getElementById('chartTooltip').classList.remove('visible');
 }
 
-function renderScoreChart(scored){
+function renderScoreChart(mine){
   const el = document.getElementById('scoreChart');
-  if(!scored.length){ el.innerHTML = '<div style="color:var(--muted); font-size:12.5px; padding:20px 0; text-align:center;">No scored attempts yet.</div>'; return; }
-  const points = scored.slice().sort(function(a,b){ return new Date(a.timestamp)-new Date(b.timestamp); }).slice(-12);
+  const withData = mine.filter(function(s){ return s.score !== null || s.confidenceRating !== null; });
+  if(!withData.length){ el.innerHTML = '<div style="color:var(--muted); font-size:12.5px; padding:20px 0; text-align:center;">No scored or self-rated attempts yet.</div>'; return; }
+  const points = withData.slice().sort(function(a,b){ return new Date(a.timestamp)-new Date(b.timestamp); }).slice(-12);
   const w = 100, h = 46, stepX = points.length>1 ? w/(points.length-1) : 0;
-  const coords = points.map(function(p,i){ return [i*stepX, h - (p.score/5)*h]; });
-  const path = coords.map(function(c,i){ return (i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1); }).join(' ');
-  const dots = coords.map(function(c,i){
-    const label = points[i].score+'/5 &middot; '+escapeHtml(points[i].scenarioTitle||'')+' &middot; '+fmtDate(points[i].timestamp);
-    return '<circle class="chart-hit" cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="6" '+
-      'onmouseenter="showChartTooltip(event, \''+label.replace(/'/g,"\\'")+'\')" onmousemove="moveChartTooltip(event)" onmouseleave="hideChartTooltip()"></circle>'+
-      '<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="2.4" fill="var(--accent)" style="pointer-events:none;"></circle>';
-  }).join('');
-  el.innerHTML = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%; height:90px; overflow:visible;">'+
-    '<path d="'+path+'" fill="none" stroke="var(--primary)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>'+dots+'</svg>'+
+
+  function buildLine(getVal, color){
+    const withVal = points.map(function(p,i){ return { p:p, i:i, v:getVal(p) }; }).filter(function(x){ return x.v !== null; });
+    if(withVal.length < 1) return '';
+    const coords = withVal.map(function(x){ return [x.i*stepX, h - (x.v/5)*h]; });
+    const path = coords.length > 1 ? coords.map(function(c,i){ return (i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1); }).join(' ') : '';
+    const dots = coords.map(function(c,idx){
+      const x = withVal[idx];
+      const label = x.v+'/5 &middot; '+escapeHtml(x.p.scenarioTitle||'')+' &middot; '+fmtDate(x.p.timestamp);
+      return '<circle class="chart-hit" cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="6" '+
+        'onmouseenter="showChartTooltip(event, \''+label.replace(/'/g,"\\'")+'\')" onmousemove="moveChartTooltip(event)" onmouseleave="hideChartTooltip()"></circle>'+
+        '<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="2.4" fill="'+color+'" style="pointer-events:none;"></circle>';
+    }).join('');
+    return (path ? '<path d="'+path+'" fill="none" stroke="'+color+'" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' : '') + dots;
+  }
+
+  const scoreLine = buildLine(function(p){ return p.score; }, 'var(--primary)');
+  const confidenceLine = buildLine(function(p){ return p.confidenceRating; }, 'var(--accent)');
+
+  el.innerHTML = '<div style="display:flex; gap:16px; margin-bottom:8px; font-size:11px; font-weight:700;">'+
+      '<span style="color:var(--primary);"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--primary); margin-right:5px;"></span>Reviewer score</span>'+
+      '<span style="color:var(--accent-dark);"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:5px;"></span>Your confidence</span>'+
+    '</div>'+
+    '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%; height:90px; overflow:visible;">'+scoreLine+confidenceLine+'</svg>'+
     '<div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted-2); margin-top:4px;"><span>'+fmtDate(points[0].timestamp).split(' ·')[0]+'</span><span>'+fmtDate(points[points.length-1].timestamp).split(' ·')[0]+'</span></div>';
 }
 
@@ -1956,6 +2084,49 @@ function iconWrap_(name){
   return '<div style="width:38px; height:38px; border-radius:10px; background:var(--accent-tint); color:var(--accent-dark); display:flex; align-items:center; justify-content:center; flex:none;">'+icon(name,18)+'</div>';
 }
 
+let examplesCache = [];
+let expandedExampleId = null;
+async function renderExamples(){
+  const list = document.getElementById('examplesList');
+  list.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>';
+  try{
+    examplesCache = await authedRun('getExemplars');
+  }catch(err){
+    list.innerHTML = emptyState('Could not load examples: ' + (err && err.message ? err.message : err));
+    return;
+  }
+  if(!examplesCache.length){
+    list.innerHTML = emptyState('No example calls have been featured yet. Approvers can feature a strong, approved, Public call from the Review Queue.', 'star');
+    return;
+  }
+  list.innerHTML = examplesCache.map(function(s){
+    const expanded = expandedExampleId === s.id;
+    const modeClass = 'badge-mode-'+String(s.practiceMode||'').toLowerCase();
+    return '<div class="card submission-card">'+
+      '<div class="sc-head row-clickable" onclick="toggleExample(\''+s.id+'\')">'+
+        '<div><div class="who" style="color:var(--primary); font-weight:700;">'+escapeHtml(s.scenarioTitle)+'</div>'+
+        '<div class="meta">by '+escapeHtml(s.agentName)+' &middot; '+fmtDate(s.timestamp)+' &middot; '+fmtDuration(s.duration)+'</div>'+
+        '<div class="badges-row" style="margin-top:8px;">'+
+          (s.practiceMode ? '<span class="badge '+modeClass+'">'+escapeHtml(s.practiceMode)+'</span>' : '')+
+          (s.score!==null?'<span class="badge badge-outbound">Score '+s.score+'/5</span>':'')+
+        '</div></div>'+
+      '</div>'+
+      (expanded ? exampleDetailHTML(s) : '')+
+    '</div>';
+  }).join('');
+}
+function toggleExample(id){
+  expandedExampleId = expandedExampleId === id ? null : id;
+  renderExamples();
+  if(expandedExampleId) loadAudioForSubmission(expandedExampleId);
+}
+function exampleDetailHTML(s){
+  return '<div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">'+
+    (s.audioFileId ? '<audio id="audio-'+s.id+'" controls></audio><div id="audioLoad-'+s.id+'" style="font-size:11.5px; color:var(--muted); margin-top:6px;">Loading recording…</div>' : '')+
+    (s.feedback ? '<div style="margin-top:12px; font-size:12.5px; background:var(--bg); padding:10px 12px; border-radius:8px;"><b>Reviewer feedback:</b> '+escapeHtml(s.feedback)+'</div>' : '')+
+  '</div>';
+}
+
 function mySubmissionCardHTML(s){
   const modeClass = 'badge-mode-'+String(s.practiceMode||'').toLowerCase();
   const expanded = expandedSubmissionId === s.id;
@@ -1979,7 +2150,9 @@ function mySubmissionCardHTML(s){
 function mySubmissionDetailHTML(s){
   return '<div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">'+
     (s.audioFileId ? '<label class="field-label">Your recording</label><audio id="audio-'+s.id+'" controls></audio><div id="audioLoad-'+s.id+'" style="font-size:11.5px; color:var(--muted); margin-top:6px;">Loading recording…</div>' : '<div style="font-size:12.5px; color:var(--muted);">No recording was submitted for this attempt.</div>')+
+    paceStatsHTML(s)+
     (s.transcript ? '<label class="field-label" style="margin-top:14px;">Auto-transcribed speech</label><div class="transcript-block">'+escapeHtml(s.transcript)+'</div>' : '')+
+    expectedVsActualHTML(s)+
     (s.status!=='pending' && (s.feedback || s.reviewedByName) ? '<div style="margin-top:12px; font-size:12.5px; background:var(--bg); padding:10px 12px; border-radius:8px;">'+
       (s.feedback ? '<b>Reviewer feedback:</b> '+escapeHtml(s.feedback) : '<span style="color:var(--muted);">No written feedback was left for this attempt.</span>')+
       (s.reviewedByName ? '<div style="margin-top:6px; color:var(--muted); font-weight:600;">Reviewed by '+escapeHtml(s.reviewedByName)+'</div>' : '')+
@@ -2029,6 +2202,7 @@ function queueItemHTML(s){
     '<div class="badges-row" style="margin-top:6px;">'+
       (s.practiceMode ? '<span class="badge '+modeClass+'">'+escapeHtml(s.practiceMode)+'</span>' : '')+
       (s.hideLinesUsed ? '<span class="badge badge-hidden">Lines hidden</span>' : '')+
+      (s.isExemplar ? '<span class="badge badge-outbound">'+icon('star',10)+' Featured example</span>' : '')+
     '</div></div>'+
     '<span class="badge badge-'+s.status+'">'+statusLabel(s.status)+'</span></div>'+
     (expanded ? reviewPanelHTML(s) : '')+'</div>';
@@ -2038,6 +2212,49 @@ function toggleExpand(id){
   expandedSubmissionId = expandedSubmissionId === id ? null : id;
   renderQueue();
   if(expandedSubmissionId) loadAudioForSubmission(expandedSubmissionId);
+}
+
+function tokenizeWords_(text){
+  return String(text||'').toLowerCase().replace(/[^a-z0-9\s']/g,'').split(/\s+/).filter(Boolean);
+}
+function highlightExtraWords_(expected, actual){
+  const expectedSet = new Set(tokenizeWords_(expected));
+  const actualWords = String(actual||'').split(/\s+/).filter(Boolean);
+  if(!actualWords.length) return '<span style="color:var(--muted-2); font-style:italic;">(nothing detected for this line)</span>';
+  return actualWords.map(function(w){
+    const clean = w.toLowerCase().replace(/[^a-z0-9']/g,'');
+    const known = !clean || expectedSet.has(clean);
+    return known ? escapeHtml(w) : '<span style="background:var(--accent-tint); color:var(--accent-dark); border-radius:3px; padding:0 2px;">'+escapeHtml(w)+'</span>';
+  }).join(' ');
+}
+function expectedVsActualHTML(s){
+  if(s.practiceMode === 'Impromptu') return '';
+  const scenario = state.scenarios.find(function(sc){ return sc.id === s.scenarioId; });
+  if(!scenario || !s.lineTranscripts || !Object.keys(s.lineTranscripts).length) return '';
+  const rows = scenario.script.map(function(line, i){
+    if(line.speaker !== 'trainee') return '';
+    const actual = s.lineTranscripts[i];
+    if(actual === undefined) return '';
+    const expectedText = line.text.replace('{name}', s.agentName || '');
+    return '<div style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed var(--border);">'+
+      '<div style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--muted-2); margin-bottom:4px;">Expected</div>'+
+      '<div style="font-size:12.5px; color:var(--muted); margin-bottom:8px;">'+escapeHtml(expectedText)+'</div>'+
+      '<div style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--muted-2); margin-bottom:4px;">What was actually said</div>'+
+      '<div style="font-size:12.5px; color:var(--text); line-height:1.6;">'+highlightExtraWords_(expectedText, actual)+'</div>'+
+    '</div>';
+  }).join('');
+  if(!rows) return '';
+  return '<label class="field-label" style="margin-top:16px;">Expected vs. what was said</label>'+
+    '<div class="hint-banner" style="margin-bottom:10px;">'+icon('alert',14)+'<span>Highlighted words were said but weren\'t in the scripted line. Some mismatches are normal, natural phrasing rarely matches word for word.</span></div>'+
+    '<div class="transcript-block" style="max-height:320px;">'+rows+'</div>';
+}
+function paceStatsHTML(s){
+  if(s.fillerCount === null && s.wordsPerMinute === null) return '';
+  const parts = [];
+  if(s.wordsPerMinute !== null) parts.push('<span class="badge badge-category">'+s.wordsPerMinute+' words/min</span>');
+  if(s.fillerCount !== null) parts.push('<span class="badge '+(s.fillerCount>4?'badge-retry':'badge-category')+'">'+s.fillerCount+' filler word'+(s.fillerCount===1?'':'s')+'</span>');
+  if(s.confidenceRating !== null) parts.push('<span class="badge badge-outbound">Self-rated confidence '+s.confidenceRating+'/5</span>');
+  return parts.length ? '<div class="badges-row" style="margin-top:10px;">'+parts.join('')+'</div>' : '';
 }
 
 function reviewPanelHTML(s){
@@ -2056,22 +2273,36 @@ function reviewPanelHTML(s){
       (s.reviewedByName ? '<span class="badge badge-approved">Reviewed by '+escapeHtml(s.reviewedByName)+'</span>' : '')+
     '</div>'+
     (s.audioFileId ? '<audio id="audio-'+s.id+'" controls></audio><div id="audioLoad-'+s.id+'" style="font-size:11.5px; color:var(--muted); margin-top:6px;">Loading recording…</div>' : '<div class="hint-banner">'+icon('alert',16)+'<span>No recording was submitted for this attempt.</span></div>')+
+    paceStatsHTML(s)+
     (s.transcript ? '<label class="field-label" style="margin-top:14px;">Auto-transcribed speech</label><div class="transcript-block">'+escapeHtml(s.transcript)+'</div>' : '')+
+    expectedVsActualHTML(s)+
     (s.notes ? '<div style="margin-top:12px; font-size:13px;"><b>Analyst notes:</b> '+escapeHtml(s.notes)+'</div>' : '')+
     '<label class="field-label" style="margin-top:16px;">Self-reported checklist</label>'+checklistHtml+
     '<label class="field-label" style="margin-top:16px;">Score</label>'+
     '<div class="score-row">'+scores.map(function(n){ return '<div class="score-pill '+(s.score===n?'selected':'')+'" onclick="setScore(\''+s.id+'\','+n+')">'+n+'</div>'; }).join('')+'</div>'+
-    '<label class="field-label" style="margin-top:16px;">Feedback for user</label>'+
+    '<label class="field-label" style="margin-top:16px;">Feedback for agent</label>'+
     '<textarea id="feedback-'+s.id+'" rows="3" placeholder="What went well, what to improve next time...">'+escapeHtml(s.feedback||'')+'</textarea>'+
-    '<div style="display:flex; gap:10px; margin-top:16px;" id="reviewActions-'+s.id+'">'+
+    '<div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;" id="reviewActions-'+s.id+'">'+
     '<button class="btn btn-danger" onclick="reviewAction(\''+s.id+'\',\'retry\')">'+icon('refresh',14)+' Send Back for Retry</button>'+
-    '<button class="btn btn-green" style="margin-left:auto;" onclick="reviewAction(\''+s.id+'\',\'approved\')">'+icon('check',14)+' Approve</button>'+
+    '<button class="btn btn-green" onclick="reviewAction(\''+s.id+'\',\'approved\')">'+icon('check',14)+' Approve</button>'+
+    (s.status==='approved' && s.visibility==='Public' ? '<button class="btn '+(s.isExemplar?'btn-navy':'btn-outline')+'" style="margin-left:auto;" onclick="toggleExemplar(\''+s.id+'\')">'+icon('star',14)+' '+(s.isExemplar?'Featured as example':'Feature as example')+'</button>' : '')+
     '</div></div>';
+}
+
+async function toggleExemplar(id){
+  const s = state.submissions.find(function(x){ return x.id===id; });
+  if(!s) return;
+  try{
+    await authedRun('setExemplar', id, !s.isExemplar);
+    s.isExemplar = !s.isExemplar;
+    renderQueue();
+    toast(s.isExemplar ? 'Featured as a team example.' : 'Removed from team examples.', 'success');
+  }catch(err){ toast('Could not update: '+(err&&err.message?err.message:err), 'error'); }
 }
 
 let audioCache = {};
 async function loadAudioForSubmission(id){
-  const s = state.submissions.find(function(x){ return x.id===id; });
+  const s = state.submissions.find(function(x){ return x.id===id; }) || examplesCache.find(function(x){ return x.id===id; });
   if(!s || !s.audioFileId) return;
   const audioEl = document.getElementById('audio-'+id);
   const loadEl = document.getElementById('audioLoad-'+id);
@@ -2173,7 +2404,8 @@ function openScriptEditor(id){
       phone: base.phone || '',
       goal: base.goal || '',
       checklist: (base.checklist && base.checklist.length) ? base.checklist : [''],
-      script: (base.script && base.script.length) ? base.script : [{speaker:'trainee', text:''}]
+      script: (base.script && base.script.length) ? base.script : [{speaker:'trainee', text:''}],
+      minMode: base.minMode || ''
     };
     renderScriptModal();
   }catch(err){
@@ -2210,6 +2442,13 @@ function renderScriptModal(){
           ['Beginner','Intermediate','Advanced'].map(function(d){ return '<option '+(e.difficulty===d?'selected':'')+'>'+d+'</option>'; }).join('')+
         '</select></div>'+
       '</div>'+
+      '<label class="field-label">Minimum practice mode</label>'+
+      '<p style="font-size:11.5px; color:var(--muted); margin-bottom:8px;">Prevents analysts from practicing this scenario with more help than it deserves, e.g. lock an advanced dispute scenario so it can\'t be run on Easy.</p>'+
+      '<select id="edit-minmode" style="margin-bottom:16px;">'+
+        [['','No minimum, any mode allowed'],['Easy','Easy or harder'],['Medium','Medium or harder'],['Hard','Hard only (plus Freestyle)']].map(function(opt){
+          return '<option value="'+opt[0]+'" '+(e.minMode===opt[0]?'selected':'')+'>'+opt[1]+'</option>';
+        }).join('')+
+      '</select>'+
       '<label class="field-label">Goal / what the agent is trying to accomplish</label>'+
       '<textarea id="edit-goal" rows="2" style="margin-bottom:16px;">'+escapeHtml(e.goal)+'</textarea>'+
       '<label class="field-label">Call script: exactly what should be said</label>'+
@@ -2276,6 +2515,7 @@ async function saveScenarioUI(){
   editingScript.phone = document.getElementById('edit-phone').value.trim();
   editingScript.direction = document.getElementById('edit-direction').value;
   editingScript.difficulty = document.getElementById('edit-difficulty').value;
+  editingScript.minMode = document.getElementById('edit-minmode').value;
   editingScript.goal = document.getElementById('edit-goal').value.trim();
   editingScript.checklist = editingScript.checklist.filter(function(c){ return String(c||'').trim(); });
   editingScript.script = editingScript.script.filter(function(l){ return String(l.text||'').trim(); });
